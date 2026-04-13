@@ -1,0 +1,55 @@
+<?php
+
+namespace App\Services\Ledger;
+
+use App\Models\CustomerLedgerEntry;
+use App\Models\DebitNote;
+use App\Models\SupplierLedgerEntry;
+
+final class DebitNoteLedgerSync
+{
+    public const DOCUMENT_TYPE = 'debit_note';
+
+    public function sync(DebitNote $note): void
+    {
+        CustomerLedgerEntry::query()
+            ->where('company_id', $note->company_id)
+            ->where('debit_note_id', $note->id)
+            ->delete();
+
+        SupplierLedgerEntry::query()
+            ->where('company_id', $note->company_id)
+            ->where('debit_note_id', $note->id)
+            ->delete();
+
+        $desc = filled($note->description) ? $note->description : 'إشعار مدين';
+
+        if ($note->counterparty_type === DebitNote::TYPE_CUSTOMER) {
+            CustomerLedgerEntry::query()->create([
+                'company_id' => $note->company_id,
+                'customer_id' => (int) $note->customer_id,
+                'debit_note_id' => $note->id,
+                'entry_date' => $note->document_date->toDateString(),
+                'document_type' => self::DOCUMENT_TYPE,
+                'document_number' => (string) $note->document_number,
+                'description' => $desc,
+                'debit' => (float) $note->amount,
+                'credit' => 0,
+            ]);
+
+            return;
+        }
+
+        SupplierLedgerEntry::query()->create([
+            'company_id' => $note->company_id,
+            'supplier_id' => (int) $note->supplier_id,
+            'debit_note_id' => $note->id,
+            'entry_date' => $note->document_date->toDateString(),
+            'document_type' => self::DOCUMENT_TYPE,
+            'document_number' => (string) $note->document_number,
+            'description' => $desc,
+            'debit' => (float) $note->amount,
+            'credit' => 0,
+        ]);
+    }
+}

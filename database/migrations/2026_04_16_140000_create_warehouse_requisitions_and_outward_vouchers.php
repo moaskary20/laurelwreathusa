@@ -38,17 +38,24 @@ return new class extends Migration
             $table->foreignId('company_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('voucher_number');
             $table->dateTime('voucher_date');
-            $table->foreignId('warehouse_requisition_id')->constrained('warehouse_requisitions')->restrictOnDelete();
+            // Short FK name: default exceeds MySQL 64-char identifier limit
+            $table->foreignId('warehouse_requisition_id');
             $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
             $table->unique(['company_id', 'voucher_number']);
             $table->index(['company_id', 'voucher_date']);
+
+            $table->foreign('warehouse_requisition_id', 'wowv_wr_req_fk')
+                ->references('id')
+                ->on('warehouse_requisitions')
+                ->restrictOnDelete();
         });
 
         Schema::create('warehouse_outward_voucher_lines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('warehouse_outward_voucher_id')->constrained()->cascadeOnDelete();
+            // Short FK name: default exceeds MySQL 64-char identifier limit
+            $table->foreignId('warehouse_outward_voucher_id');
             $table->foreignId('service_product_id')->nullable()->constrained('service_products')->nullOnDelete();
             $table->string('description')->nullable();
             $table->decimal('quantity_requested', 15, 4)->default(0);
@@ -59,6 +66,11 @@ return new class extends Migration
             $table->timestamps();
 
             $table->index('warehouse_outward_voucher_id');
+
+            $table->foreign('warehouse_outward_voucher_id', 'wowl_wov_fk')
+                ->references('id')
+                ->on('warehouse_outward_vouchers')
+                ->cascadeOnDelete();
         });
     }
 

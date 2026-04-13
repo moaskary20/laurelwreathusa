@@ -65,8 +65,6 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->index('warehouse_outward_voucher_id');
-
             $table->foreign('warehouse_outward_voucher_id', 'wowl_wov_fk')
                 ->references('id')
                 ->on('warehouse_outward_vouchers')

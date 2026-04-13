@@ -24,7 +24,7 @@ return new class extends Migration
 
         Schema::create('finished_goods_inward_voucher_lines', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('finished_goods_inward_voucher_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('finished_goods_inward_voucher_id');
             $table->foreignId('service_product_id')->nullable()->constrained('service_products')->nullOnDelete();
             $table->string('description')->nullable();
             $table->decimal('quantity', 15, 4)->default(1);
@@ -33,7 +33,10 @@ return new class extends Migration
             $table->unsignedInteger('sort_order')->default(0);
             $table->timestamps();
 
-            $table->index('finished_goods_inward_voucher_id');
+            $table->foreign('finished_goods_inward_voucher_id', 'fgivl_fgiv_fk')
+                ->references('id')
+                ->on('finished_goods_inward_vouchers')
+                ->cascadeOnDelete();
         });
     }
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages\Payroll;
 
 use App\Models\Company;
+use App\Models\CostCenter;
 use App\Models\Employee;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -160,6 +161,7 @@ final class EmployeeDefinitionPage extends Page implements Tables\Contracts\HasT
 
         fgetcsv($handle);
         $count = 0;
+        $invalidCostCenters = 0;
         while (($row = fgetcsv($handle)) !== false) {
             if (count($row) < 6) {
                 continue;
@@ -167,6 +169,12 @@ final class EmployeeDefinitionPage extends Page implements Tables\Contracts\HasT
             $jobNumber = (string) ($row[4] ?? '');
             if ($jobNumber === '') {
                 continue;
+            }
+
+            $costCenterId = isset($row[14]) && $row[14] !== '' ? (int) $row[14] : null;
+            if ($costCenterId !== null && ! $this->isValidCostCenter($costCenterId, $tenant)) {
+                $costCenterId = null;
+                $invalidCostCenters++;
             }
 
             Employee::query()->updateOrCreate(
@@ -188,7 +196,7 @@ final class EmployeeDefinitionPage extends Page implements Tables\Contracts\HasT
                     'marital_status' => ($row[11] ?? '') === 'married' ? 'married' : 'single',
                     'phone_allowance' => isset($row[12]) && in_array(strtolower((string) $row[12]), ['1', 'true', 'yes'], true),
                     'deduction_type' => ($row[13] ?? '') !== '' ? $row[13] : null,
-                    'cost_center_id' => isset($row[14]) && $row[14] !== '' ? (int) $row[14] : null,
+                    'cost_center_id' => $costCenterId,
                 ]
             );
             $count++;
@@ -200,7 +208,7 @@ final class EmployeeDefinitionPage extends Page implements Tables\Contracts\HasT
         Notification::make()
             ->success()
             ->title('تم الاستيراد')
-            ->body('عدد السجلات: '.$count)
+            ->body('عدد السجلات: '.$count.($invalidCostCenters > 0 ? '، وتم تجاهل '.$invalidCostCenters.' مركز تكلفة غير صالح' : ''))
             ->send();
 
         $this->resetTable();
@@ -313,5 +321,13 @@ final class EmployeeDefinitionPage extends Page implements Tables\Contracts\HasT
     public function getTitle(): string|Htmlable
     {
         return 'تعريف الموظف';
+    }
+
+    protected function isValidCostCenter(int $costCenterId, Company $tenant): bool
+    {
+        return CostCenter::query()
+            ->where('company_id', $tenant->id)
+            ->whereKey($costCenterId)
+            ->exists();
     }
 }

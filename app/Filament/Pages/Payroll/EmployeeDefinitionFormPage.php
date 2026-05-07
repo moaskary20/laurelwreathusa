@@ -201,6 +201,7 @@ final class EmployeeDefinitionFormPage extends Page
 
         $this->form->validate();
         $data = $this->form->getState();
+        $data = $this->normalizeEmployeeDataForTenant($data, $tenant);
 
         $payload = [
             'company_id' => $tenant->id,
@@ -272,5 +273,28 @@ final class EmployeeDefinitionFormPage extends Page
         $editId = request()->query('id');
 
         return ($editId !== null && $editId !== '') ? 'تعديل موظف' : 'اضافة موظف';
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    protected function normalizeEmployeeDataForTenant(array $data, Company $tenant): array
+    {
+        $costCenterId = $data['cost_center_id'] ?? null;
+        if ($costCenterId === '' || $costCenterId === null) {
+            $data['cost_center_id'] = null;
+
+            return $data;
+        }
+
+        CostCenter::query()
+            ->where('company_id', $tenant->id)
+            ->whereKey((int) $costCenterId)
+            ->firstOrFail();
+
+        $data['cost_center_id'] = (int) $costCenterId;
+
+        return $data;
     }
 }

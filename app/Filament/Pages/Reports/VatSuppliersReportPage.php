@@ -82,12 +82,14 @@ final class VatSuppliersReportPage extends Page
         $query = PurchaseInvoice::query()
             ->where('company_id', $tenant->id)
             ->whereBetween('invoice_date', [$start, $end])
-            ->with('supplier')
+            ->with(['supplier' => fn ($q) => $q->where('company_id', $tenant->id)])
             ->orderBy('invoice_date')
             ->orderBy('invoice_number');
 
-        if ($this->supplierId !== '' && $this->supplierId !== null) {
+        if ($this->supplierId !== '' && $this->supplierId !== null && $this->selectedSupplier() instanceof Supplier) {
             $query->where('supplier_id', (int) $this->supplierId);
+        } elseif ($this->supplierId !== '' && $this->supplierId !== null) {
+            $query->whereRaw('1 = 0');
         }
 
         $includeSupplierColumn = $this->supplierId === '' || $this->supplierId === null;
@@ -177,7 +179,7 @@ final class VatSuppliersReportPage extends Page
         if ($this->supplierId === '' || $this->supplierId === null) {
             return 'جميع الموردين';
         }
-        $s = Supplier::query()->find((int) $this->supplierId);
+        $s = $this->selectedSupplier();
 
         return $s?->name_ar ?? '—';
     }
@@ -187,9 +189,21 @@ final class VatSuppliersReportPage extends Page
         if ($this->supplierId === '' || $this->supplierId === null) {
             return '—';
         }
-        $s = Supplier::query()->find((int) $this->supplierId);
+        $s = $this->selectedSupplier();
 
         return filled($s?->sales_tax_number) ? (string) $s->sales_tax_number : '—';
+    }
+
+    protected function selectedSupplier(): ?Supplier
+    {
+        $tenant = Filament::getTenant();
+        if (! $tenant instanceof Company || $this->supplierId === '' || $this->supplierId === null) {
+            return null;
+        }
+
+        return Supplier::query()
+            ->where('company_id', $tenant->id)
+            ->find((int) $this->supplierId);
     }
 
     public function companyDisplayName(): string

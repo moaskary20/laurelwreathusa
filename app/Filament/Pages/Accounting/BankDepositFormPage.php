@@ -7,6 +7,7 @@ use App\Models\AccountGroup;
 use App\Models\BankDeposit;
 use App\Models\Company;
 use App\Models\Currency;
+use App\Services\Accounting\ChartOfAccountsService;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -86,7 +87,7 @@ final class BankDepositFormPage extends Page
         $tenant = Filament::getTenant();
         abort_unless($tenant instanceof Company, 404);
 
-        $accountOptions = AccountGroup::indentedOptionsForCompany($tenant->id);
+        $accountOptions = AccountGroup::indentedPostingOptionsForCompany($tenant->id);
 
         return $form
             ->schema([
@@ -173,6 +174,9 @@ final class BankDepositFormPage extends Page
             AccountGroup::query()->where('company_id', $tenant->id)->whereKey($toId)->exists(),
             404
         );
+
+        app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, $fromId);
+        app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, $toId);
 
         $amount = round((float) ($data['amount'] ?? 0), 2);
         if ($amount <= 0) {

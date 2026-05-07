@@ -96,20 +96,26 @@ final class RevenueByServiceProductPage extends Page
         $end = Carbon::parse($this->dateTo)->endOfDay();
 
         $query = InvoiceLine::query()
-            ->with(['invoice.customer', 'serviceProduct'])
+            ->with([
+                'invoice.customer' => fn ($q) => $q->where('company_id', $tenant->id),
+                'serviceProduct' => fn ($q) => $q->where('company_id', $tenant->id),
+            ])
             ->whereHas('invoice', function ($q) use ($tenant, $start, $end): void {
                 $q->where('company_id', $tenant->id)
                     ->whereBetween('invoice_date', [$start, $end]);
             });
 
         if ($this->kindFilter === 'service' || $this->kindFilter === 'product') {
-            $query->whereHas('serviceProduct', function ($q): void {
-                $q->where('kind', $this->kindFilter);
+            $query->whereHas('serviceProduct', function ($q) use ($tenant): void {
+                $q->where('company_id', $tenant->id)
+                    ->where('kind', $this->kindFilter);
             });
         }
 
-        if ($this->serviceProductId !== '' && $this->serviceProductId !== null) {
+        if ($this->serviceProductId !== '' && $this->serviceProductId !== null && $this->selectedServiceProduct() instanceof ServiceProduct) {
             $query->where('service_product_id', (int) $this->serviceProductId);
+        } elseif ($this->serviceProductId !== '' && $this->serviceProductId !== null) {
+            $query->whereRaw('1 = 0');
         }
 
         $lines = $query->get()->sortBy(function (InvoiceLine $line): array {
@@ -208,6 +214,18 @@ final class RevenueByServiceProductPage extends Page
         return $tenant instanceof Company
             ? (string) ($tenant->trade_name ?: $tenant->legal_name ?: '—')
             : '—';
+    }
+
+    protected function selectedServiceProduct(): ?ServiceProduct
+    {
+        $tenant = Filament::getTenant();
+        if (! $tenant instanceof Company || $this->serviceProductId === '' || $this->serviceProductId === null) {
+            return null;
+        }
+
+        return ServiceProduct::query()
+            ->where('company_id', $tenant->id)
+            ->find((int) $this->serviceProductId);
     }
 
     public function getTitle(): string|Htmlable

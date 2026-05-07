@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages\Inventory;
 
+use App\Models\AccountGroup;
 use App\Models\Company;
 use App\Models\ServiceProduct;
 use Filament\Facades\Filament;
@@ -142,11 +143,18 @@ final class InventoryItemsListPage extends Page implements Tables\Contracts\HasT
 
         fgetcsv($handle);
         $count = 0;
+        $invalidGroups = 0;
         while (($row = fgetcsv($handle)) !== false) {
             if (count($row) < 3) {
                 continue;
             }
             $unitCost = isset($row[3]) ? (float) $row[3] : 0;
+            $accountGroupId = isset($row[5]) && $row[5] !== '' ? (int) $row[5] : null;
+            if ($accountGroupId !== null && ! $this->isValidInventoryAccountGroup($accountGroupId, $tenant)) {
+                $accountGroupId = null;
+                $invalidGroups++;
+            }
+
             ServiceProduct::query()->updateOrCreate(
                 [
                     'company_id' => $tenant->id,
@@ -159,7 +167,7 @@ final class InventoryItemsListPage extends Page implements Tables\Contracts\HasT
                     'stock_quantity' => isset($row[4]) ? (float) $row[4] : 0,
                     'unit_cost' => $unitCost,
                     'sale_price' => $unitCost,
-                    'account_group_id' => isset($row[5]) && $row[5] !== '' ? (int) $row[5] : null,
+                    'account_group_id' => $accountGroupId,
                 ]
             );
             $count++;
@@ -171,7 +179,7 @@ final class InventoryItemsListPage extends Page implements Tables\Contracts\HasT
         Notification::make()
             ->success()
             ->title('تم الاستيراد')
-            ->body('عدد السجلات: '.$count)
+            ->body('عدد السجلات: '.$count.($invalidGroups > 0 ? '، وتم تجاهل '.$invalidGroups.' مجموعة غير صالحة' : ''))
             ->send();
 
         $this->resetTable();
@@ -269,5 +277,15 @@ final class InventoryItemsListPage extends Page implements Tables\Contracts\HasT
     public function getTitle(): string|Htmlable
     {
         return 'قائمة الاصناف';
+    }
+
+    protected function isValidInventoryAccountGroup(int $accountGroupId, Company $tenant): bool
+    {
+        return AccountGroup::query()
+            ->whereKey($accountGroupId)
+            ->where('company_id', $tenant->id)
+            ->where('is_active', true)
+            ->where('is_postable', true)
+            ->exists();
     }
 }

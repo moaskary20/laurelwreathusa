@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Validation\Rule as ValidationRule;
+use Illuminate\Validation\ValidationException;
 
 final class InventoryItemFormPage extends Page
 {
@@ -99,7 +100,7 @@ final class InventoryItemFormPage extends Page
                                     }),
                                 Forms\Components\Select::make('account_group_id')
                                     ->label('المجموعات')
-                                    ->options(AccountGroup::indentedOptionsForCompany($tenant->id))
+                                    ->options(AccountGroup::indentedPostingOptionsForCompany($tenant->id))
                                     ->searchable()
                                     ->preload()
                                     ->native(false),
@@ -128,6 +129,7 @@ final class InventoryItemFormPage extends Page
 
         $this->form->validate();
         $data = $this->form->getState();
+        $data = $this->normalizeInventoryItemDataForTenant($data, $tenant);
 
         $payload = [
             'company_id' => $tenant->id,
@@ -193,5 +195,40 @@ final class InventoryItemFormPage extends Page
         $editId = request()->query('id');
 
         return ($editId !== null && $editId !== '') ? 'تعديل صنف' : 'اضافة صنف';
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
+     */
+    protected function normalizeInventoryItemDataForTenant(array $data, Company $tenant): array
+    {
+        $accountGroupId = $data['account_group_id'] ?? null;
+
+        if ($accountGroupId === '' || $accountGroupId === null) {
+            $data['account_group_id'] = null;
+
+            return $data;
+        }
+
+        $accountGroupId = (int) $accountGroupId;
+        $isValid = AccountGroup::query()
+            ->whereKey($accountGroupId)
+            ->where('company_id', $tenant->id)
+            ->where('is_active', true)
+            ->where('is_postable', true)
+            ->exists();
+
+        if (! $isValid) {
+            throw ValidationException::withMessages([
+                'account_group_id' => 'المجموعة المختارة غير مرتبطة بهذه الشركة أو غير مفعلة للترحيل.',
+            ]);
+        }
+
+        $data['account_group_id'] = $accountGroupId;
+
+        return $data;
     }
 }

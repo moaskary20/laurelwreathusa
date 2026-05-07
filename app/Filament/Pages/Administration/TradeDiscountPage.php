@@ -170,7 +170,7 @@ final class TradeDiscountPage extends Page implements Tables\Contracts\HasTable
                                         $tenant = Filament::getTenant();
                                         abort_unless($tenant instanceof Company, 404);
 
-                                        return AccountGroup::indentedOptionsForCompany($tenant->id);
+                                        return AccountGroup::indentedPostingOptionsForCompany($tenant->id);
                                     })
                                     ->searchable()
                                     ->preload()

@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\FinishedGoodsInwardVoucher;
 use App\Models\FinishedGoodsInwardVoucherLine;
 use App\Models\ServiceProduct;
+use App\Services\Accounting\ChartOfAccountsService;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -139,7 +140,7 @@ final class FinishedGoodsInwardVoucherFormPage extends Page
                 Forms\Components\Select::make('credit_account_group_id')
                     ->label('الحساب الدائن')
                     ->placeholder('المجموعات')
-                    ->options(AccountGroup::indentedOptionsForCompany($tenant->id))
+                    ->options(AccountGroup::indentedPostingOptionsForCompany($tenant->id))
                     ->searchable()
                     ->preload()
                     ->native(false),
@@ -224,10 +225,7 @@ final class FinishedGoodsInwardVoucherFormPage extends Page
         $data = $this->form->getState();
 
         if (! empty($data['credit_account_group_id'])) {
-            AccountGroup::query()
-                ->where('company_id', $tenant->id)
-                ->whereKey($data['credit_account_group_id'])
-                ->firstOrFail();
+            app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, (int) $data['credit_account_group_id']);
         }
 
         $lines = collect($data['lines'] ?? [])

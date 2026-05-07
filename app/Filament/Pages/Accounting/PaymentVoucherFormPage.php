@@ -9,6 +9,7 @@ use App\Models\PaymentVoucher;
 use App\Models\PaymentVoucherLine;
 use App\Models\PurchaseInvoice;
 use App\Models\Supplier;
+use App\Services\Accounting\ChartOfAccountsService;
 use App\Services\Ledger\PaymentVoucherLedgerSync;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -100,7 +101,7 @@ final class PaymentVoucherFormPage extends Page
         $tenant = Filament::getTenant();
         abort_unless($tenant instanceof Company, 404);
 
-        $accountOptions = AccountGroup::indentedOptionsForCompany($tenant->id);
+        $accountOptions = AccountGroup::indentedPostingOptionsForCompany($tenant->id);
 
         return $form
             ->schema([
@@ -314,6 +315,10 @@ final class PaymentVoucherFormPage extends Page
                 return;
             }
             $data['total_amount'] = round($total, 2);
+        }
+
+        if (! empty($data['account_group_id'])) {
+            app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, (int) $data['account_group_id']);
         }
 
         DB::transaction(function () use ($tenant, $supplier, $data, $kind, $settlementLines): void {

@@ -5,6 +5,7 @@ namespace App\Support\Payroll;
 use App\Models\Employee;
 use App\Models\PayrollAllowance;
 use App\Models\PayrollDeduction;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
 
 /**
@@ -25,6 +26,7 @@ final class EmployeePayrollAmounts
         private Employee $employee,
         private Collection $companyAllowances,
         private Collection $companyDeductions,
+        private ?CarbonInterface $referenceDate = null,
     ) {}
 
     public static function roundMoney(float $value): float
@@ -64,17 +66,9 @@ final class EmployeePayrollAmounts
             return $this->allowancesBreakdownCache;
         }
 
-        $parts = [];
-        $total = 0.0;
-
-        foreach ($this->companyAllowances as $allowance) {
-            if (! $this->allowanceAppliesToEmployee($allowance)) {
-                continue;
-            }
-            $monthly = self::monthlyPortion($allowance);
-            $total += $monthly;
-            $parts[] = $allowance->allowance_type;
-        }
+        $items = $this->allowanceItems();
+        $total = array_sum(array_column($items, 'amount'));
+        $parts = array_column($items, 'label');
 
         return $this->allowancesBreakdownCache = [
             'total' => self::roundMoney($total),
@@ -91,24 +85,13 @@ final class EmployeePayrollAmounts
             return $this->deductionsBreakdownCache;
         }
 
-        $type = trim((string) ($this->employee->deduction_type ?? ''));
-        if ($type === '') {
-            return $this->deductionsBreakdownCache = ['total' => 0.0, 'labels' => ''];
-        }
-
-        $match = $this->companyDeductions->first(function (PayrollDeduction $d) use ($type): bool {
-            return trim($d->deduction_type) === $type;
-        });
-
-        if ($match === null) {
-            return $this->deductionsBreakdownCache = ['total' => 0.0, 'labels' => $type];
-        }
-
-        $monthly = self::monthlyPortionDeduction($match);
+        $items = $this->deductionItems();
+        $total = array_sum(array_column($items, 'amount'));
+        $parts = array_column($items, 'label');
 
         return $this->deductionsBreakdownCache = [
-            'total' => self::roundMoney($monthly),
-            'labels' => $match->deduction_type,
+            'total' => self::roundMoney($total),
+            'labels' => implode('، ', array_filter($parts)),
         ];
     }
 
@@ -122,9 +105,64 @@ final class EmployeePayrollAmounts
         return self::roundMoney($basic + $allow['total'] - $ded['total'] - $empSs);
     }
 
+    /**
+     * @return list<array{type: string, source_id: int|null, label: string, amount: float}>
+     */
+    public function allowanceItems(): array
+    {
+        $items = [];
+
+        foreach ($this->companyAllowances as $allowance) {
+            if (! $this->allowanceAppliesToEmployee($allowance)) {
+                continue;
+            }
+
+            $items[] = [
+                'type' => 'allowance',
+                'source_id' => $allowance->getKey(),
+                'label' => (string) $allowance->allowance_type,
+                'amount' => self::roundMoney(self::monthlyPortion($allowance)),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return list<array{type: string, source_id: int|null, label: string, amount: float}>
+     */
+    public function deductionItems(): array
+    {
+        $type = trim((string) ($this->employee->deduction_type ?? ''));
+        if ($type === '') {
+            return [];
+        }
+
+        $match = $this->companyDeductions->first(function (PayrollDeduction $d) use ($type): bool {
+            return trim($d->deduction_type) === $type;
+        });
+
+        if (! $match instanceof PayrollDeduction) {
+            return [[
+                'type' => 'deduction',
+                'source_id' => null,
+                'label' => $type,
+                'amount' => 0.0,
+            ]];
+        }
+
+        return [[
+            'type' => 'deduction',
+            'source_id' => $match->getKey(),
+            'label' => (string) $match->deduction_type,
+            'amount' => self::roundMoney(self::monthlyPortionDeduction($match)),
+        ]];
+    }
+
     private function allowanceAppliesToEmployee(PayrollAllowance $allowance): bool
     {
-        if ($allowance->start_date !== null && $allowance->start_date->isFuture()) {
+        $referenceDate = $this->referenceDate ?? now();
+        if ($allowance->start_date !== null && $allowance->start_date->greaterThan($referenceDate)) {
             return false;
         }
 

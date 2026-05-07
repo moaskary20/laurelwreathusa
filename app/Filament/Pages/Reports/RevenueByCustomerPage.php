@@ -82,16 +82,21 @@ final class RevenueByCustomerPage extends Page
         $end = Carbon::parse($this->dateTo)->endOfDay();
 
         $query = InvoiceLine::query()
-            ->with(['invoice.customer', 'serviceProduct'])
+            ->with([
+                'invoice.customer' => fn ($q) => $q->where('company_id', $tenant->id),
+                'serviceProduct' => fn ($q) => $q->where('company_id', $tenant->id),
+            ])
             ->whereHas('invoice', function ($q) use ($tenant, $start, $end): void {
                 $q->where('company_id', $tenant->id)
                     ->whereBetween('invoice_date', [$start, $end]);
             });
 
-        if ($this->customerId !== '' && $this->customerId !== null) {
+        if ($this->customerId !== '' && $this->customerId !== null && $this->selectedCustomer() instanceof Customer) {
             $query->whereHas('invoice', function ($q): void {
                 $q->where('customer_id', (int) $this->customerId);
             });
+        } elseif ($this->customerId !== '' && $this->customerId !== null) {
+            $query->whereRaw('1 = 0');
         }
 
         $includeCustomerColumn = $this->customerId === '' || $this->customerId === null;
@@ -200,9 +205,21 @@ final class RevenueByCustomerPage extends Page
         if ($this->customerId === '' || $this->customerId === null) {
             return 'جميع العملاء';
         }
-        $c = Customer::query()->find((int) $this->customerId);
+        $c = $this->selectedCustomer();
 
         return $c?->name_ar ?? '—';
+    }
+
+    protected function selectedCustomer(): ?Customer
+    {
+        $tenant = Filament::getTenant();
+        if (! $tenant instanceof Company || $this->customerId === '' || $this->customerId === null) {
+            return null;
+        }
+
+        return Customer::query()
+            ->where('company_id', $tenant->id)
+            ->find((int) $this->customerId);
     }
 
     public function companyDisplayName(): string

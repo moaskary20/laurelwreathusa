@@ -60,8 +60,14 @@ final class IncomeStatementPage extends Page
 
         $sales = DB::table('invoice_lines')
             ->join('invoices', 'invoice_lines.invoice_id', '=', 'invoices.id')
-            ->leftJoin('service_products', 'invoice_lines.service_product_id', '=', 'service_products.id')
-            ->leftJoin('account_groups', 'service_products.account_group_id', '=', 'account_groups.id')
+            ->leftJoin('service_products', function ($join) use ($tenant): void {
+                $join->on('invoice_lines.service_product_id', '=', 'service_products.id')
+                    ->where('service_products.company_id', '=', $tenant->id);
+            })
+            ->leftJoin('account_groups', function ($join) use ($tenant): void {
+                $join->on('service_products.account_group_id', '=', 'account_groups.id')
+                    ->where('account_groups.company_id', '=', $tenant->id);
+            })
             ->where('invoices.company_id', $tenant->id)
             ->whereBetween('invoices.invoice_date', [$start, $end])
             ->groupBy(DB::raw('COALESCE(account_groups.id, 0)'))
@@ -72,8 +78,14 @@ final class IncomeStatementPage extends Page
 
         $purchases = DB::table('purchase_invoice_lines')
             ->join('purchase_invoices', 'purchase_invoice_lines.purchase_invoice_id', '=', 'purchase_invoices.id')
-            ->leftJoin('service_products', 'purchase_invoice_lines.service_product_id', '=', 'service_products.id')
-            ->leftJoin('account_groups', 'service_products.account_group_id', '=', 'account_groups.id')
+            ->leftJoin('service_products', function ($join) use ($tenant): void {
+                $join->on('purchase_invoice_lines.service_product_id', '=', 'service_products.id')
+                    ->where('service_products.company_id', '=', $tenant->id);
+            })
+            ->leftJoin('account_groups', function ($join) use ($tenant): void {
+                $join->on('service_products.account_group_id', '=', 'account_groups.id')
+                    ->where('account_groups.company_id', '=', $tenant->id);
+            })
             ->where('purchase_invoices.company_id', $tenant->id)
             ->whereBetween('purchase_invoices.invoice_date', [$start, $end])
             ->groupBy(DB::raw('COALESCE(account_groups.id, 0)'))

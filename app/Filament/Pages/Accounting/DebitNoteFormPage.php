@@ -9,6 +9,7 @@ use App\Models\Currency;
 use App\Models\Customer;
 use App\Models\DebitNote;
 use App\Models\Supplier;
+use App\Services\Accounting\ChartOfAccountsService;
 use App\Services\Ledger\DebitNoteLedgerSync;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
@@ -94,7 +95,7 @@ final class DebitNoteFormPage extends Page
         $tenant = Filament::getTenant();
         abort_unless($tenant instanceof Company, 404);
 
-        $accountOptions = AccountGroup::indentedOptionsForCompany($tenant->id);
+        $accountOptions = AccountGroup::indentedPostingOptionsForCompany($tenant->id);
 
         return $form
             ->schema([
@@ -219,6 +220,10 @@ final class DebitNoteFormPage extends Page
                 ->where('company_id', $tenant->id)
                 ->whereKey($data['supplier_id'])
                 ->firstOrFail();
+        }
+
+        if (! empty($data['account_group_id'])) {
+            app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, (int) $data['account_group_id']);
         }
 
         DB::transaction(function () use ($tenant, $data, $type, $amount): void {

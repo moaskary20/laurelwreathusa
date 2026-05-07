@@ -75,7 +75,7 @@ final class AccountingAccountStatementPage extends Page implements Tables\Contra
                         $tenant = Filament::getTenant();
                         abort_unless($tenant instanceof Company, 404);
 
-                        return AccountGroup::indentedOptionsForCompany($tenant->id);
+                        return AccountGroup::indentedPostingOptionsForCompany($tenant->id);
                     })
                     ->searchable()
                     ->preload()

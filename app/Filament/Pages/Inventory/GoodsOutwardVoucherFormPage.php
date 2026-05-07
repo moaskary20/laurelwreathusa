@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\GoodsOutwardVoucher;
 use App\Models\SalesOrder;
+use App\Services\Accounting\ChartOfAccountsService;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -123,7 +124,7 @@ final class GoodsOutwardVoucherFormPage extends Page
                 Forms\Components\Select::make('account_group_id')
                     ->label('الحساب المدين')
                     ->placeholder('المجموعات')
-                    ->options(AccountGroup::indentedOptionsForCompany($tenant->id))
+                    ->options(AccountGroup::indentedPostingOptionsForCompany($tenant->id))
                     ->searchable()
                     ->preload()
                     ->native(false),
@@ -159,6 +160,10 @@ final class GoodsOutwardVoucherFormPage extends Page
                 ->where('customer_id', $data['customer_id'])
                 ->whereKey($data['sales_order_id'])
                 ->firstOrFail();
+        }
+
+        if (! empty($data['account_group_id'])) {
+            app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, (int) $data['account_group_id']);
         }
 
         $payload = [

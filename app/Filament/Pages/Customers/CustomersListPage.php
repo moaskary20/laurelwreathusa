@@ -17,6 +17,7 @@ use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -50,7 +51,9 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
 
         abort_unless($tenant instanceof Company, 404);
 
-        return Customer::query()->where('company_id', $tenant->id);
+        return Customer::query()
+            ->where('company_id', $tenant->id)
+            ->with('accountGroup');
     }
 
     /**
@@ -79,6 +82,10 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
             Tables\Columns\TextColumn::make('payment_method')
                 ->label('طريقة التسديد')
                 ->formatStateUsing(fn ($state, Customer $record): string => $record->paymentMethodLabel()),
+            Tables\Columns\TextColumn::make('accountGroup.name_ar')
+                ->label('المجموعة')
+                ->placeholder('—')
+                ->searchable(),
             Tables\Columns\TextColumn::make('credit_limit')
                 ->label('سقف الائتمان')
                 ->numeric(2),
@@ -116,7 +123,7 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
                         $data['balance'] = $data['opening_balance'] ?? 0;
                     }
 
-                    return $data;
+                    return $this->normalizeCustomerDataForTenant($data, $tenant);
                 })
                 ->successNotificationTitle('تمت إضافة العميل')
                 ->form(fn (Form $form): Form => $this->customerForm($form)),
@@ -172,10 +179,18 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
 
         fgetcsv($handle);
         $count = 0;
+        $invalidGroups = 0;
         while (($row = fgetcsv($handle)) !== false) {
             if (count($row) < 2) {
                 continue;
             }
+
+            $accountGroupId = isset($row[12]) && $row[12] !== '' ? (int) $row[12] : null;
+            if ($accountGroupId !== null && ! $this->isValidCustomerAccountGroup($accountGroupId, $tenant)) {
+                $accountGroupId = null;
+                $invalidGroups++;
+            }
+
             Customer::query()->create([
                 'company_id' => $tenant->id,
                 'name_ar' => $row[0] ?? '',
@@ -192,7 +207,7 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
                 'credit_limit' => isset($row[9]) ? (float) $row[9] : 0,
                 'opening_balance' => isset($row[10]) ? (float) $row[10] : 0,
                 'balance' => isset($row[11]) ? (float) $row[11] : 0,
-                'account_group_id' => isset($row[12]) && $row[12] !== '' ? (int) $row[12] : null,
+                'account_group_id' => $accountGroupId,
             ]);
             $count++;
         }
@@ -203,7 +218,7 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
         Notification::make()
             ->success()
             ->title('تم الاستيراد')
-            ->body('عدد السجلات: '.$count)
+            ->body('عدد السجلات: '.$count.($invalidGroups > 0 ? '، وتم تجاهل '.$invalidGroups.' مجموعة غير صالحة' : ''))
             ->send();
 
         $this->resetTable();
@@ -286,6 +301,12 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
                 ->modalWidth(MaxWidth::FourExtraLarge)
                 ->modalSubmitActionLabel('حفظ')
                 ->modalCancelActionLabel('إلغاء')
+                ->mutateFormDataUsing(function (array $data): array {
+                    $tenant = Filament::getTenant();
+                    abort_unless($tenant instanceof Company, 404);
+
+                    return $this->normalizeCustomerDataForTenant($data, $tenant);
+                })
                 ->successNotificationTitle('تم حفظ التعديلات')
                 ->form(fn (Form $form): Form => $this->customerForm($form)),
             Tables\Actions\DeleteAction::make()
@@ -381,7 +402,7 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
                                         $tenant = Filament::getTenant();
                                         abort_unless($tenant instanceof Company, 404);
 
-                                        return AccountGroup::indentedOptionsForCompany($tenant->id);
+                                        return AccountGroup::indentedPostingOptionsForCompany($tenant->id);
                                     })
                                     ->searchable()
                                     ->preload()
@@ -401,5 +422,43 @@ final class CustomersListPage extends Page implements Tables\Contracts\HasTable
     public function getTitle(): string|Htmlable
     {
         return 'قائمة العملاء';
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     *
+     * @throws ValidationException
+     */
+    protected function normalizeCustomerDataForTenant(array $data, Company $tenant): array
+    {
+        $accountGroupId = $data['account_group_id'] ?? null;
+
+        if ($accountGroupId === '' || $accountGroupId === null) {
+            $data['account_group_id'] = null;
+
+            return $data;
+        }
+
+        $accountGroupId = (int) $accountGroupId;
+        if (! $this->isValidCustomerAccountGroup($accountGroupId, $tenant)) {
+            throw ValidationException::withMessages([
+                'account_group_id' => 'المجموعة المختارة غير مرتبطة بهذه الشركة أو غير مفعلة للترحيل.',
+            ]);
+        }
+
+        $data['account_group_id'] = $accountGroupId;
+
+        return $data;
+    }
+
+    protected function isValidCustomerAccountGroup(int $accountGroupId, Company $tenant): bool
+    {
+        return AccountGroup::query()
+            ->whereKey($accountGroupId)
+            ->where('company_id', $tenant->id)
+            ->where('is_active', true)
+            ->where('is_postable', true)
+            ->exists();
     }
 }

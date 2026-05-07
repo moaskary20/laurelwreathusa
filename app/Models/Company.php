@@ -182,6 +182,11 @@ class Company extends Model implements HasName
         return $this->hasMany(PayrollDeduction::class);
     }
 
+    public function payrollRuns(): HasMany
+    {
+        return $this->hasMany(PayrollRun::class);
+    }
+
     public function serviceProducts(): HasMany
     {
         return $this->hasMany(ServiceProduct::class);

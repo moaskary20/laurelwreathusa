@@ -325,7 +325,7 @@ final class ServicesAndProductsListPage extends Page implements Tables\Contracts
                                     ),
                                 Forms\Components\Select::make('account_group_id')
                                     ->label('المجموعات')
-                                    ->options(AccountGroup::indentedOptionsForCompany($tenant->id))
+                                    ->options(AccountGroup::indentedPostingOptionsForCompany($tenant->id))
                                     ->searchable()
                                     ->preload()
                                     ->native(false),

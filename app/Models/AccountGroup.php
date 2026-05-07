@@ -12,14 +12,26 @@ class AccountGroup extends Model
     protected $fillable = [
         'company_id',
         'parent_id',
+        'code',
         'name_ar',
+        'account_type',
+        'normal_balance',
+        'is_postable',
+        'is_active',
+        'allow_manual_entries',
         'sort_order',
+        'level',
+        'path',
     ];
 
     protected function casts(): array
     {
         return [
             'sort_order' => 'integer',
+            'is_postable' => 'boolean',
+            'is_active' => 'boolean',
+            'allow_manual_entries' => 'boolean',
+            'level' => 'integer',
         ];
     }
 
@@ -38,10 +50,52 @@ class AccountGroup extends Model
         return $this->hasMany(self::class, 'parent_id')->orderBy('sort_order')->orderBy('id');
     }
 
+    public function labelWithCode(): string
+    {
+        $code = is_string($this->code) && $this->code !== '' ? $this->code.' - ' : '';
+
+        return $code.$this->name_ar;
+    }
+
     /**
      * @return array<int, string> id => indented label for searchable selects
      */
     public static function indentedOptionsForCompany(int $companyId): array
+    {
+        $all = static::query()
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        return self::buildIndentedOptions($all, null, 0);
+    }
+
+    /**
+     * حسابات الترحيل فقط (postable + active) لاستخدامها في القيود والبنوك.
+     *
+     * @return array<int, string>
+     */
+    public static function indentedPostingOptionsForCompany(int $companyId): array
+    {
+        $all = static::query()
+            ->where('company_id', $companyId)
+            ->where('is_active', true)
+            ->where('is_postable', true)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get();
+
+        return self::buildIndentedOptions($all, null, 0);
+    }
+
+    /**
+     * كل الحسابات (تشمل غير المفعلة) لاستخدام شاشة شجرة الحسابات.
+     *
+     * @return array<int, string>
+     */
+    public static function indentedAllOptionsForCompany(int $companyId): array
     {
         $all = static::query()
             ->where('company_id', $companyId)
@@ -67,7 +121,8 @@ class AccountGroup extends Model
         })->values();
 
         foreach ($items as $g) {
-            $out[$g->id] = ($depth > 0 ? str_repeat('— ', $depth) : '').$g->name_ar;
+            $label = $g->labelWithCode();
+            $out[$g->id] = ($depth > 0 ? str_repeat('— ', $depth) : '').$label;
             $out += self::buildIndentedOptions($all, $g->id, $depth + 1);
         }
 

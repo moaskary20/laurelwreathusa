@@ -19,6 +19,26 @@
             </div>
         </div>
 
+        @php($totals = $this->runTotals())
+        <div class="mb-4 grid gap-3 md:grid-cols-4">
+            <div class="ci-card p-3">
+                <div class="text-sm text-gray-500">الدورة المحددة</div>
+                <div class="font-semibold">{{ $this->selectedRunLabel() }}</div>
+            </div>
+            <div class="ci-card p-3">
+                <div class="text-sm text-gray-500">عدد الموظفين</div>
+                <div class="font-semibold">{{ $totals['employees_count'] }}</div>
+            </div>
+            <div class="ci-card p-3">
+                <div class="text-sm text-gray-500">إجمالي الرواتب الصافي</div>
+                <div class="font-semibold">{{ number_format((float) $totals['net_total'], 2) }}</div>
+            </div>
+            <div class="ci-card p-3">
+                <div class="text-sm text-gray-500">الضمان الواجب توريده</div>
+                <div class="font-semibold">{{ number_format((float) ($totals['employee_ss_total'] + $totals['company_ss_total']), 2) }}</div>
+            </div>
+        </div>
+
         <div class="ci-card ci-form-inner ci-payroll-statement-page">
             <div class="ci-card__head ci-card__head-pay">
                 <x-filament::icon icon="heroicon-o-table-cells" class="h-5 w-5" />

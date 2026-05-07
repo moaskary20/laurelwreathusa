@@ -82,12 +82,14 @@ final class VatCustomersReportPage extends Page
         $query = Invoice::query()
             ->where('company_id', $tenant->id)
             ->whereBetween('invoice_date', [$start, $end])
-            ->with('customer')
+            ->with(['customer' => fn ($q) => $q->where('company_id', $tenant->id)])
             ->orderBy('invoice_date')
             ->orderBy('invoice_number');
 
-        if ($this->customerId !== '' && $this->customerId !== null) {
+        if ($this->customerId !== '' && $this->customerId !== null && $this->selectedCustomer() instanceof Customer) {
             $query->where('customer_id', (int) $this->customerId);
+        } elseif ($this->customerId !== '' && $this->customerId !== null) {
+            $query->whereRaw('1 = 0');
         }
 
         $includeCustomerColumn = $this->customerId === '' || $this->customerId === null;
@@ -177,7 +179,7 @@ final class VatCustomersReportPage extends Page
         if ($this->customerId === '' || $this->customerId === null) {
             return 'جميع العملاء';
         }
-        $c = Customer::query()->find((int) $this->customerId);
+        $c = $this->selectedCustomer();
 
         return $c?->name_ar ?? '—';
     }
@@ -187,9 +189,21 @@ final class VatCustomersReportPage extends Page
         if ($this->customerId === '' || $this->customerId === null) {
             return '—';
         }
-        $c = Customer::query()->find((int) $this->customerId);
+        $c = $this->selectedCustomer();
 
         return filled($c?->sales_tax_number) ? (string) $c->sales_tax_number : '—';
+    }
+
+    protected function selectedCustomer(): ?Customer
+    {
+        $tenant = Filament::getTenant();
+        if (! $tenant instanceof Company || $this->customerId === '' || $this->customerId === null) {
+            return null;
+        }
+
+        return Customer::query()
+            ->where('company_id', $tenant->id)
+            ->find((int) $this->customerId);
     }
 
     public function companyDisplayName(): string

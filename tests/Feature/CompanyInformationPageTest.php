@@ -15,8 +15,12 @@ class CompanyInformationPageTest extends TestCase
     {
         $this->seed();
 
-        $user = User::factory()->create();
         $company = Company::query()->firstOrFail();
+        $user = User::factory()->create([
+            'company_id' => $company->getKey(),
+            'is_main_user' => false,
+            'is_super_user' => false,
+        ]);
 
         $this->actingAs($user)
             ->get('/admin/'.$company->getKey().'/company-information')

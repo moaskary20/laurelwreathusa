@@ -60,21 +60,54 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return true;
+        if ($this->isAdminTenantSwitcher()) {
+            return true;
+        }
+
+        return (int) ($this->company_id ?? 0) > 0;
+    }
+
+    public function isAdminTenantSwitcher(): bool
+    {
+        return (bool) ($this->is_super_user || $this->is_main_user);
     }
 
     public function getTenants(Panel $panel): array|Collection
     {
-        return Company::query()->orderBy('trade_name')->get();
+        if ($this->isAdminTenantSwitcher()) {
+            return Company::query()->orderBy('trade_name')->get();
+        }
+
+        $companyId = (int) ($this->company_id ?? 0);
+        if ($companyId <= 0) {
+            return collect();
+        }
+
+        return Company::query()->whereKey($companyId)->get();
     }
 
     public function canAccessTenant(Model $tenant): bool
     {
-        return $tenant instanceof Company;
+        if (! $tenant instanceof Company) {
+            return false;
+        }
+
+        if ($this->isAdminTenantSwitcher()) {
+            return true;
+        }
+
+        return (int) ($this->company_id ?? 0) === (int) $tenant->getKey();
     }
 
     public function getDefaultTenant(Panel $panel): ?Model
     {
+        if (! $this->isAdminTenantSwitcher()) {
+            $companyId = (int) ($this->company_id ?? 0);
+            if ($companyId > 0) {
+                return Company::query()->whereKey($companyId)->first();
+            }
+        }
+
         return Company::query()->orderBy('id')->first();
     }
 

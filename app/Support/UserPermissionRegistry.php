@@ -103,8 +103,6 @@ final class UserPermissionRegistry
                     'allowances-definition-page' => 'تعريف العلاوات',
                     'deductions-definition-page' => 'تعريف الاقتطاعات',
                     'payroll-statement-page' => 'كشف الرواتب (1)',
-                    'payroll-statement-second-page' => 'كشف الرواتب (2)',
-                    'payroll-statement-third-page' => 'كشف الرواتب (3)',
                 ],
             ],
             'reports' => [

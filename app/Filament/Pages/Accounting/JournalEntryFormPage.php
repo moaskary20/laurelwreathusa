@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Models\Supplier;
+use App\Services\Accounting\ChartOfAccountsService;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms;
@@ -113,7 +114,7 @@ final class JournalEntryFormPage extends Page
         $tenant = Filament::getTenant();
         abort_unless($tenant instanceof Company, 404);
 
-        $accountOptions = AccountGroup::indentedOptionsForCompany($tenant->id);
+        $accountOptions = AccountGroup::indentedPostingOptionsForCompany($tenant->id);
         $mainCurrencyName = Currency::query()
             ->where('company_id', $tenant->id)
             ->where('is_main', true)
@@ -340,6 +341,39 @@ final class JournalEntryFormPage extends Page
             }
         }
 
+        foreach ($lines as $line) {
+            $gid = (int) $line['account_group_id'];
+            try {
+                app(ChartOfAccountsService::class)->assertCanPostToAccount($tenant->id, $gid);
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                Notification::make()
+                    ->danger()
+                    ->title('حساب غير صالح للترحيل')
+                    ->body(($e->errors()['account_group_id'][0] ?? $e->getMessage()))
+                    ->send();
+
+                return;
+            }
+
+            if (! empty($line['customer_id']) && ! Customer::query()
+                ->where('company_id', $tenant->id)
+                ->whereKey((int) $line['customer_id'])
+                ->exists()) {
+                Notification::make()->title('العميل المختار غير مرتبط بهذه الشركة')->danger()->send();
+
+                return;
+            }
+
+            if (! empty($line['supplier_id']) && ! Supplier::query()
+                ->where('company_id', $tenant->id)
+                ->whereKey((int) $line['supplier_id'])
+                ->exists()) {
+                Notification::make()->title('المورد المختار غير مرتبط بهذه الشركة')->danger()->send();
+
+                return;
+            }
+        }
+
         DB::transaction(function () use ($tenant, $data, $lines): void {
             $payload = [
                 'company_id' => $tenant->id,
@@ -364,11 +398,6 @@ final class JournalEntryFormPage extends Page
 
             foreach ($lines as $index => $line) {
                 $gid = (int) $line['account_group_id'];
-                abort_unless(
-                    AccountGroup::query()->where('company_id', $tenant->id)->whereKey($gid)->exists(),
-                    404
-                );
-
                 JournalEntryLine::query()->create([
                     'journal_entry_id' => $entry->id,
                     'account_group_id' => $gid,
@@ -377,8 +406,8 @@ final class JournalEntryFormPage extends Page
                     'credit' => (float) ($line['credit'] ?? 0),
                     'debit_foreign' => (float) ($line['debit_foreign'] ?? 0),
                     'credit_foreign' => (float) ($line['credit_foreign'] ?? 0),
-                    'customer_id' => $line['customer_id'] ?? null,
-                    'supplier_id' => $line['supplier_id'] ?? null,
+                    'customer_id' => ! empty($line['customer_id']) ? (int) $line['customer_id'] : null,
+                    'supplier_id' => ! empty($line['supplier_id']) ? (int) $line['supplier_id'] : null,
                     'sort_order' => $index,
                 ]);
             }

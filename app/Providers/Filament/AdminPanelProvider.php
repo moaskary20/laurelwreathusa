@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Models\Company;
+use App\Support\AdminNavigationGroupLabels;
 use Filament\FontProviders\GoogleFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -45,16 +46,11 @@ class AdminPanelProvider extends PanelProvider
                 PanelsRenderHook::BODY_END,
                 fn (): string => view('filament.partials.sidebar-enhancements-script')->render(),
             )
-            ->navigationGroups([
-                NavigationGroup::make('إدارة')->collapsed(),
-                NavigationGroup::make('العملاء')->collapsed(),
-                NavigationGroup::make('الموردين')->collapsed(),
-                NavigationGroup::make('المخزون')->collapsed(),
-                NavigationGroup::make('المحاسبة')->collapsed(),
-                NavigationGroup::make('الموجودات')->collapsed(),
-                NavigationGroup::make('كشف الرواتب')->collapsed(),
-                NavigationGroup::make('تقارير')->collapsed(),
-            ])
+            ->navigationGroups(
+                collect(AdminNavigationGroupLabels::all())
+                    ->map(fn (string $label): NavigationGroup => NavigationGroup::make($label)->collapsed())
+                    ->all(),
+            )
             ->collapsibleNavigationGroups()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

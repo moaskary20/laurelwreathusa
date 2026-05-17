@@ -1,9 +1,8 @@
 @php
-    $defaultCollapsedGroups = collect(filament()->getNavigation())
-        ->map(fn (\Filament\Navigation\NavigationGroup $group): ?string => $group->getLabel())
-        ->filter()
-        ->values()
-        ->all();
+    use App\Support\AdminNavigationGroupLabels;
+
+    // لا نستدعي filament()->getNavigation() هنا — يُولّد روابط بدون tenant ويكسر الصفحة.
+    $defaultCollapsedGroups = AdminNavigationGroupLabels::all();
 @endphp
 
 <script>

@@ -44,47 +44,6 @@
         animation-delay: 0.06s;
     }
 
-    .fi-sidebar .fi-sidebar-item-button,
-    .fi-sidebar .fi-sidebar-group-button {
-        transition:
-            background-color 0.18s ease,
-            transform 0.2s var(--fil-motion-ease),
-            box-shadow 0.2s ease;
-    }
-
-    .fi-sidebar .fi-sidebar-item-button:hover,
-    .fi-sidebar .fi-sidebar-group-button:hover {
-        transform: translateX(-3px);
-    }
-
-    [dir='rtl'] .fi-sidebar .fi-sidebar-item-button:hover,
-    [dir='rtl'] .fi-sidebar .fi-sidebar-group-button:hover {
-        transform: translateX(3px);
-    }
-
-    /* صفحة القائمة المفتوحة — متناسقة مع واجباتي (تيل) */
-    .fi-main-sidebar .fi-sidebar-item.fi-active > a.fi-sidebar-item-button {
-        background-color: color-mix(in srgb, rgb(0 188 212) 22%, transparent) !important;
-        box-shadow: inset 3px 0 0 0 rgb(0 139 163);
-    }
-
-    .dark .fi-main-sidebar .fi-sidebar-item.fi-active > a.fi-sidebar-item-button {
-        background-color: color-mix(in srgb, rgb(0 188 212) 16%, transparent) !important;
-        box-shadow: inset 3px 0 0 0 rgb(0 188 212);
-    }
-
-    [dir='rtl'] .fi-main-sidebar .fi-sidebar-item.fi-active > a.fi-sidebar-item-button {
-        box-shadow: inset -3px 0 0 0 rgb(0 139 163);
-    }
-
-    .dark[dir='rtl'] .fi-main-sidebar .fi-sidebar-item.fi-active > a.fi-sidebar-item-button {
-        box-shadow: inset -3px 0 0 0 rgb(0 188 212);
-    }
-
-    .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-label {
-        font-weight: 600;
-    }
-
     .fi-topbar {
         animation: fil-fade-in 0.35s ease-out both;
     }
@@ -104,14 +63,7 @@
             animation: none !important;
         }
 
-        .fi-sidebar .fi-sidebar-item-button,
-        .fi-sidebar .fi-sidebar-group-button {
-            transition: none;
-        }
-
-        .fi-sidebar .fi-sidebar-item-button:hover,
-        .fi-sidebar .fi-sidebar-group-button:hover {
-            transform: none;
-        }
     }
 </style>
+
+@include('filament.partials.sidebar-enhancements')

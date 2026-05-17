@@ -36,20 +36,24 @@ class AdminPanelProvider extends PanelProvider
             ->colors([
                 'primary' => Color::Amber,
             ])
+            ->darkMode(true, isForced: true)
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
                 fn (): string => view('filament.partials.theme')->render(),
-                scopes: 'admin',
+            )
+            ->renderHook(
+                PanelsRenderHook::BODY_END,
+                fn (): string => view('filament.partials.sidebar-enhancements-script')->render(),
             )
             ->navigationGroups([
-                NavigationGroup::make('إدارة'),
-                NavigationGroup::make('العملاء'),
-                NavigationGroup::make('الموردين'),
-                NavigationGroup::make('المخزون'),
-                NavigationGroup::make('المحاسبة'),
-                NavigationGroup::make('الموجودات'),
-                NavigationGroup::make('كشف الرواتب'),
-                NavigationGroup::make('تقارير'),
+                NavigationGroup::make('إدارة')->collapsed(),
+                NavigationGroup::make('العملاء')->collapsed(),
+                NavigationGroup::make('الموردين')->collapsed(),
+                NavigationGroup::make('المخزون')->collapsed(),
+                NavigationGroup::make('المحاسبة')->collapsed(),
+                NavigationGroup::make('الموجودات')->collapsed(),
+                NavigationGroup::make('كشف الرواتب')->collapsed(),
+                NavigationGroup::make('تقارير')->collapsed(),
             ])
             ->collapsibleNavigationGroups()
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

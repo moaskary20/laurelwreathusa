@@ -18,7 +18,7 @@
             .ci-fixed-assets-register-page .ci-far-filters {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1.25rem 1.5rem;
                 margin-bottom: 1rem;
             }
@@ -35,7 +35,7 @@
 
             .ci-fixed-assets-register-page .ci-table-shell [class*='fi-table-header-cell'] {
                 color: #e8f7fa !important;
-                background: rgba(0, 139, 163, 0.2) !important;
+                background: var(--ci-teal-muted-bg) !important;
                 text-align: center !important;
                 white-space: nowrap;
             }

@@ -2,8 +2,11 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use App\Models\Company;
 use App\Support\AdminNavigationGroupLabels;
+use App\Support\AdminTheme;
+use App\Support\AppBrand;
 use Filament\FontProviders\GoogleFontProvider;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -12,7 +15,6 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
 use Filament\Panel;
 use Filament\PanelProvider;
-use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -31,11 +33,15 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->tenant(Company::class)
-            ->login()
+            ->login(Login::class)
             ->brandName('النظام المحاسبي')
+            ->brandLogo(AppBrand::logoUrl())
+            ->brandLogoHeight('2.75rem')
+            ->favicon(AppBrand::logoUrl())
             ->font('Tajawal', null, GoogleFontProvider::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => AdminTheme::primaryFilamentPalette(),
+                'success' => AdminTheme::secondaryFilamentPalette(),
             ])
             ->darkMode(true, isForced: true)
             ->renderHook(

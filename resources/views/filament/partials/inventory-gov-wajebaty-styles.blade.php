@@ -1,12 +1,12 @@
 {{-- تصميم موحّد لسندات/طلبات المستودع (نمط واجباتي: داكن، برتقالي، حقول بإطار). يُحمّل بعد wajebaty-theme-styles. --}}
 <style>
     .ci-wajebaty.ci-inventory-gov-wajebaty {
-        --ci-gov-orange: #ffb300;
-        --ci-gov-orange-hover: #ffc107;
-        --ci-gov-orange-text: #1a1205;
+        --ci-gov-orange: var(--admin-secondary, #5B8FD9);
+        --ci-gov-orange-hover: var(--admin-secondary-light, #7DA8E8);
+        --ci-gov-orange-text: var(--ci-on-accent);
         --ci-gov-input-bg: rgba(255, 255, 255, 0.09);
         --ci-gov-muted-border: rgba(255, 255, 255, 0.14);
-        background: #121212;
+        background: var(--ci-bg);
         border-radius: 1rem;
     }
 
@@ -19,16 +19,16 @@
     }
 
     .ci-inventory-gov-wajebaty .ci-gov-box.ci-form-inner {
-        background: #1a1f26 !important;
+        background: var(--ci-card) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
         border-radius: 0.75rem;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 28px var(--ci-shadow-strong);
         padding: 1.25rem 1.5rem;
         margin-bottom: 1rem;
     }
 
     .ci-inventory-gov-wajebaty .ci-banner {
-        background: linear-gradient(135deg, #1c222c 0%, #12161c 100%) !important;
+        background: linear-gradient(135deg, var(--ci-surface-elevated) 0%, var(--ci-bg) 100%) !important;
         border: 1px solid var(--ci-line);
         color: #fff;
     }
@@ -89,7 +89,7 @@
         border-color: var(--ci-line) !important;
         border-radius: 0.65rem !important;
         padding: 0.85rem 1rem !important;
-        background: rgba(0, 0, 0, 0.2) !important;
+        background: var(--ci-surface-overlay-light) !important;
     }
 
     .ci-inventory-gov-wajebaty .ci-form-inner fieldset.fi-fieldset > legend {

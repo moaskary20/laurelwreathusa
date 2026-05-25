@@ -39,7 +39,7 @@
             .ci-purchase-order-form-page .ci-so-balance {
                 border-radius: 0.5rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(26, 32, 41, 0.95);
+                background: var(--ci-table-pagination-bg);
                 padding: 0.75rem 1rem;
                 text-align: center;
             }
@@ -73,7 +73,7 @@
             }
 
             .ci-purchase-order-form-page .ci-so-supplier-table th {
-                background: rgba(0, 139, 163, 0.2);
+                background: var(--ci-teal-muted-bg);
                 color: #e8f7fa;
             }
 

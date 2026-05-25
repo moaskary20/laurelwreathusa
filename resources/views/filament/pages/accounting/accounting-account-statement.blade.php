@@ -10,7 +10,7 @@
             .ci-accounting-statement-page .ci-statement-filter-card {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1.25rem 1.5rem;
                 margin-bottom: 1.25rem;
             }
@@ -25,7 +25,7 @@
             .ci-accounting-statement-page .ci-statement-account-banner {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(26, 32, 41, 0.92);
+                background: var(--ci-table-row-bg);
                 padding: 1rem 1.25rem;
                 margin-bottom: 0.75rem;
             }
@@ -40,34 +40,34 @@
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
                 overflow: hidden;
-                background: rgba(0, 0, 0, 0.28);
+                background: var(--ci-surface-overlay);
             }
 
             .ci-accounting-statement-page .ci-table-shell .fi-ta-header-ctn {
-                background: rgba(26, 32, 41, 0.98) !important;
+                background: var(--ci-table-toolbar-bg) !important;
             }
 
             .ci-accounting-statement-page .ci-table-shell .fi-ta-header-toolbar {
-                background: rgba(26, 32, 41, 0.98) !important;
+                background: var(--ci-table-toolbar-bg) !important;
                 border-color: var(--ci-line) !important;
             }
 
             .ci-accounting-statement-page .ci-table-shell .fi-ta-content {
-                background: rgba(15, 18, 24, 0.65) !important;
+                background: var(--ci-table-content-bg) !important;
                 border-color: var(--ci-line) !important;
             }
 
             .ci-accounting-statement-page .ci-table-shell .fi-ta-record {
-                background: rgba(30, 37, 48, 0.92) !important;
+                background: var(--ci-table-row-bg) !important;
             }
 
             .ci-accounting-statement-page .ci-table-shell .fi-ta-record:hover {
-                background: rgba(40, 50, 64, 0.96) !important;
+                background: var(--ci-table-row-hover-bg) !important;
             }
 
             .ci-accounting-statement-page .ci-table-shell [class*='fi-table-header-cell'] {
                 color: #e8f7fa !important;
-                background: rgba(0, 139, 163, 0.2) !important;
+                background: var(--ci-teal-muted-bg) !important;
                 text-align: center !important;
             }
 

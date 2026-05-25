@@ -21,8 +21,6 @@
 
 <style>
     :root {
-        --fil-sidebar-accent: rgb(0 188 212);
-        --fil-sidebar-accent-dim: rgb(0 139 163);
         --fil-sidebar-surface: rgba(255, 255, 255, 0.04);
         --fil-sidebar-border: rgba(255, 255, 255, 0.08);
         --fil-sidebar-group-ease: cubic-bezier(0.33, 1, 0.68, 1);
@@ -30,13 +28,13 @@
 
     /* ——— القائمة الجانبية (fi-main-sidebar و fi-sidebar على نفس العنصر) ——— */
     aside.fi-main-sidebar {
-        background: linear-gradient(180deg, rgb(15 20 28) 0%, rgb(11 14 17) 100%) !important;
+        background: linear-gradient(180deg, var(--fil-sidebar-bg-top) 0%, var(--fil-sidebar-bg-bottom) 100%) !important;
         border-inline-end: 1px solid var(--fil-sidebar-border);
     }
 
     .fi-main-sidebar .fi-sidebar-header {
-        background: transparent !important;
-        border-bottom: 1px solid var(--fil-sidebar-border);
+        background: #000000 !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
         box-shadow: none !important;
     }
 
@@ -207,13 +205,13 @@
     }
 
     .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
-        background: color-mix(in srgb, var(--fil-sidebar-accent) 18%, transparent) !important;
-        box-shadow: inset 3px 0 0 0 var(--fil-sidebar-accent-dim);
+        background: color-mix(in srgb, var(--fil-sidebar-active) 22%, transparent) !important;
+        box-shadow: inset 3px 0 0 0 var(--fil-sidebar-active);
         padding-inline-start: 0.7rem !important;
     }
 
     [dir='rtl'] .fi-main-sidebar .fi-sidebar-item.fi-active > .fi-sidebar-item-button {
-        box-shadow: inset -3px 0 0 0 var(--fil-sidebar-accent);
+        box-shadow: inset -3px 0 0 0 var(--fil-sidebar-active);
     }
 
     /* سهم صغير بجانب الصفحة المفتوحة */
@@ -223,8 +221,8 @@
         width: 0.45rem;
         height: 0.45rem;
         margin-inline-start: 0.35rem;
-        border-inline-end: 2px solid var(--fil-sidebar-accent);
-        border-block-end: 2px solid var(--fil-sidebar-accent);
+        border-inline-end: 2px solid var(--fil-sidebar-active);
+        border-block-end: 2px solid var(--fil-sidebar-active);
         transform: rotate(45deg);
         opacity: 0.95;
         animation: fil-sidebar-arrow-pulse 2s ease-in-out infinite;
@@ -262,21 +260,26 @@
         }
     }
 
-    .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-label {
+    .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-label,
+    .fi-main-sidebar .fi-sidebar-item.fi-active [class*='text-primary'] {
         font-weight: 700 !important;
-        color: var(--fil-sidebar-accent) !important;
+        color: var(--fil-sidebar-active-light) !important;
     }
 
     .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-icon {
-        color: var(--fil-sidebar-accent) !important;
+        color: var(--fil-sidebar-active) !important;
+    }
+
+    .fi-main-sidebar .fi-sidebar-item.fi-active [class*='bg-primary'] {
+        background-color: var(--fil-sidebar-active) !important;
     }
 
     /* نقطة العناصر الفرعية → تمييز أوضح عند التفعيل */
     .fi-main-sidebar .fi-sidebar-item.fi-active .fi-sidebar-item-grouped-border .rounded-full {
         width: 0.4rem !important;
         height: 0.4rem !important;
-        background: var(--fil-sidebar-accent) !important;
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--fil-sidebar-accent) 25%, transparent);
+        background: var(--fil-sidebar-active) !important;
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--fil-sidebar-active) 30%, transparent);
     }
 
     @media (prefers-reduced-motion: reduce) {

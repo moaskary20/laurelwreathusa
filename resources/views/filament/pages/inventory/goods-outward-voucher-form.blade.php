@@ -17,7 +17,7 @@
             .ci-goods-outward-voucher-form-page .ci-gov-box {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1.25rem 1.5rem;
                 margin-bottom: 1rem;
             }

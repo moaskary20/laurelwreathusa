@@ -51,7 +51,7 @@
                 font-weight: 700;
                 font-size: 0.9rem;
                 background: var(--ci-teal-bright);
-                color: #0b0e11;
+                color: var(--ci-on-accent);
                 border: none;
                 cursor: pointer;
             }

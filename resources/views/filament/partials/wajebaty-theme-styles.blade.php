@@ -1,10 +1,10 @@
+@include('filament.partials.admin-theme-variables')
+
 <style>
     .ci-wajebaty {
-        --ci-bg: #0b0e11;
-        --ci-card: #1e2530;
-        --ci-teal: #008ba3;
-        --ci-teal-bright: #00bcd4;
-        --ci-orange: #ffb300;
+        --ci-teal: var(--admin-primary, #323991);
+        --ci-teal-bright: var(--admin-primary-light, #4a4fad);
+        --ci-orange: var(--admin-secondary, #5B8FD9);
         --ci-muted: rgba(255, 255, 255, 0.62);
         --ci-line: rgba(255, 255, 255, 0.12);
         font-family: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
@@ -41,7 +41,7 @@
         gap: 1.25rem;
         padding: 1.25rem 1.5rem;
         border-radius: 1.25rem;
-        background: linear-gradient(135deg, #008ba3 0%, #006978 100%);
+        background: linear-gradient(135deg, var(--ci-teal) 0%, var(--admin-primary-dark, #262d6e) 100%);
         color: #fff;
         margin-bottom: 1.5rem;
         animation: ci-fade-in 0.45s ease-out 0.08s both;
@@ -200,7 +200,7 @@
     }
 
     .ci-wajebaty thead th {
-        background: rgba(0, 139, 163, 0.2);
+        background: var(--ci-teal-muted-bg);
         color: #e8f7fa;
         font-weight: 700;
         padding: 0.55rem 0.65rem;
@@ -268,13 +268,13 @@
 
     .ci-wajebaty .ci-form-inner .fi-btn-color-primary {
         background: var(--ci-teal-bright) !important;
-        color: #0b0e11 !important;
+        color: var(--ci-on-accent) !important;
     }
 
     .ci-wajebaty .ci-form-inner .ci-logo-field {
         padding: 0.85rem 1rem;
         border-radius: 0.65rem;
-        background: linear-gradient(90deg, #008ba3, #00a3bf);
+        background: linear-gradient(90deg, var(--ci-teal), var(--ci-teal-bright));
         margin-top: 0.75rem;
     }
 
@@ -301,7 +301,7 @@
         font-weight: 700;
         font-size: 0.9rem;
         background: var(--ci-teal-bright);
-        color: #0b0e11;
+        color: var(--ci-on-accent);
         border: none;
         cursor: pointer;
         transition:
@@ -311,7 +311,7 @@
 
     .ci-wajebaty .ci-btn-save:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(0, 188, 212, 0.35);
+        box-shadow: 0 6px 18px rgba(var(--admin-primary-rgb, 50, 57, 145), 0.35);
     }
 
     .ci-wajebaty .ci-btn-cancel {
@@ -322,15 +322,15 @@
         border-radius: 0.55rem;
         font-weight: 700;
         font-size: 0.9rem;
-        background: rgba(0, 188, 212, 0.18);
-        color: #e0f7fa;
-        border: 1px solid rgba(0, 188, 212, 0.45);
+        background: rgba(var(--admin-primary-rgb, 50, 57, 145), 0.18);
+        color: #e8eaf6;
+        border: 1px solid rgba(var(--admin-primary-rgb, 50, 57, 145), 0.45);
         cursor: pointer;
         transition: background 0.15s ease;
     }
 
     .ci-wajebaty .ci-btn-cancel:hover {
-        background: rgba(0, 188, 212, 0.28);
+        background: rgba(var(--admin-primary-rgb, 50, 57, 145), 0.28);
     }
 
     /* Filament data table inside resource shell */
@@ -338,39 +338,39 @@
         border-radius: 0.75rem;
         border: 1px solid var(--ci-line);
         overflow: hidden;
-        background: rgba(0, 0, 0, 0.28);
+        background: var(--ci-surface-overlay);
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-header-ctn {
-        background: rgba(26, 32, 41, 0.98) !important;
+        background: var(--ci-table-toolbar-bg) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-header-toolbar {
-        background: rgba(26, 32, 41, 0.98) !important;
+        background: var(--ci-table-toolbar-bg) !important;
         border-color: var(--ci-line) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-content {
-        background: rgba(15, 18, 24, 0.65) !important;
+        background: var(--ci-table-content-bg) !important;
         border-color: var(--ci-line) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-record {
-        background: rgba(30, 37, 48, 0.92) !important;
+        background: var(--ci-table-row-bg) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-record:hover {
-        background: rgba(40, 50, 64, 0.96) !important;
+        background: var(--ci-table-row-hover-bg) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-pagination {
-        background: rgba(26, 32, 41, 0.95) !important;
+        background: var(--ci-table-pagination-bg) !important;
         border-color: var(--ci-line) !important;
     }
 
     .ci-wajebaty .ci-table-shell [class*='fi-table-header-cell'] {
         color: #e8f7fa !important;
-        background: rgba(0, 139, 163, 0.2) !important;
+        background: var(--ci-teal-muted-bg) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-text,
@@ -396,7 +396,7 @@
     .ci-wajebaty .ci-form-inner .fi-fo-field-wrp:focus-within .fi-fo-text-input,
     .ci-wajebaty .ci-form-inner .fi-fo-field-wrp:focus-within .fi-fo-textarea,
     .ci-wajebaty .ci-form-inner .fi-fo-field-wrp:focus-within .fi-fo-select {
-        background: rgba(0, 188, 212, 0.1) !important;
+        background: rgba(var(--admin-primary-rgb, 50, 57, 145), 0.1) !important;
     }
 
     .ci-wajebaty .ci-form-inner .fi-fo-checkbox-list-option-label {

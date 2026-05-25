@@ -39,7 +39,7 @@
             .ci-receipt-voucher-form-page .ci-rv-balance {
                 border-radius: 0.5rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(26, 32, 41, 0.95);
+                background: var(--ci-table-pagination-bg);
                 padding: 0.75rem 1rem;
                 text-align: center;
             }
@@ -58,7 +58,7 @@
             .ci-receipt-voucher-form-page .ci-rv-meta {
                 border-radius: 0.5rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1rem;
                 font-size: 0.9rem;
                 color: rgba(255, 255, 255, 0.88);

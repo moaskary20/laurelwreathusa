@@ -43,7 +43,7 @@
             .ci-disposal-reports-page .ci-dr-search input {
                 border-radius: 9999px;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 color: rgba(255, 255, 255, 0.9);
                 padding: 0.5rem 1rem;
                 min-width: 12rem;
@@ -65,7 +65,7 @@
 
             .ci-disposal-reports-page .ci-table-shell [class*='fi-table-header-cell'] {
                 color: #e8f7fa !important;
-                background: rgba(0, 139, 163, 0.2) !important;
+                background: var(--ci-teal-muted-bg) !important;
                 text-align: center !important;
             }
 

@@ -1,9 +1,9 @@
 {{-- تقارير المحاسبة: نفس أسلوب شاشات الرواتب (تعريف الاقتطاعات) — داكن، برتقالي، بطاقات ci-card. يُحمّل بعد wajebaty-theme-styles و payroll-wajebaty-styles. --}}
 <style>
     .ci-payroll-wajebaty.ci-reports-page {
-        --ci-rep-orange: #ffb300;
-        --ci-rep-orange-hover: #ffc107;
-        --ci-rep-orange-text: #1a1205;
+        --ci-rep-orange: var(--admin-secondary, #5B8FD9);
+        --ci-rep-orange-hover: var(--admin-secondary-light, #7DA8E8);
+        --ci-rep-orange-text: var(--ci-on-accent);
         --ci-rep-input-bg: rgba(255, 255, 255, 0.09);
         --ci-rep-border: rgba(255, 255, 255, 0.14);
     }
@@ -18,9 +18,9 @@
 
     /* بطاقات مثل ci-payroll-form-card */
     .ci-payroll-wajebaty.ci-reports-page .ci-reports-card.ci-card.ci-form-inner {
-        background: #1a1f26 !important;
+        background: var(--ci-card) !important;
         border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 28px var(--ci-shadow-strong);
         border-radius: 0.75rem;
         padding: 1.25rem 1.5rem;
         margin-bottom: 1rem;
@@ -201,7 +201,7 @@
     }
 
     .ci-payroll-wajebaty.ci-reports-page .ci-rep-table-wrap tbody tr.ci-rep-section td {
-        background: rgba(0, 0, 0, 0.25);
+        background: var(--ci-surface-overlay-light);
         font-weight: 700;
         color: rgba(255, 255, 255, 0.96);
         padding-top: 0.75rem;
@@ -235,7 +235,7 @@
     .ci-payroll-wajebaty.ci-reports-page tfoot td {
         padding: 0.65rem 0.75rem;
         font-weight: 800;
-        background: rgba(0, 0, 0, 0.35);
+        background: var(--ci-shadow-strong);
         border-top: 2px solid var(--ci-line);
         color: rgba(255, 255, 255, 0.96);
     }

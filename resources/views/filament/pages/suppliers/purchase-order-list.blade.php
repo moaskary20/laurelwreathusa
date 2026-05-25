@@ -17,30 +17,30 @@
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
                 overflow: hidden;
-                background: rgba(0, 0, 0, 0.28);
+                background: var(--ci-surface-overlay);
             }
 
             .ci-purchase-order-list-page .ci-table-shell .fi-ta-header-ctn {
-                background: rgba(26, 32, 41, 0.98) !important;
+                background: var(--ci-table-toolbar-bg) !important;
             }
 
             .ci-purchase-order-list-page .ci-table-shell .fi-ta-header-toolbar {
-                background: rgba(26, 32, 41, 0.98) !important;
+                background: var(--ci-table-toolbar-bg) !important;
                 border-color: var(--ci-line) !important;
             }
 
             .ci-purchase-order-list-page .ci-table-shell .fi-ta-content {
-                background: rgba(15, 18, 24, 0.65) !important;
+                background: var(--ci-table-content-bg) !important;
                 border-color: var(--ci-line) !important;
             }
 
             .ci-purchase-order-list-page .ci-table-shell .fi-ta-record {
-                background: rgba(30, 37, 48, 0.92) !important;
+                background: var(--ci-table-row-bg) !important;
             }
 
             .ci-purchase-order-list-page .ci-table-shell [class*='fi-table-header-cell'] {
                 color: #e8f7fa !important;
-                background: rgba(0, 139, 163, 0.2) !important;
+                background: var(--ci-teal-muted-bg) !important;
                 text-align: center !important;
             }
 
@@ -57,7 +57,7 @@
 
             .ci-purchase-order-list-page .ci-table-shell .fi-ac-btn-color-primary {
                 background: var(--ci-teal-bright) !important;
-                color: #0b0e11 !important;
+                color: var(--ci-on-accent) !important;
             }
 
             @media print {

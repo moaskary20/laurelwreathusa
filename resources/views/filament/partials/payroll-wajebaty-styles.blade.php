@@ -1,24 +1,24 @@
 {{-- تصميم موحّد لشاشات الرواتب: خلفية داكنة، أزرار برتقالية، حقول بإطار (مرجع واجباتي). يُحمّل بعد wajebaty-theme-styles. --}}
 <style>
     .ci-wajebaty.ci-payroll-wajebaty {
-        --ci-payroll-orange: #ffb300;
-        --ci-payroll-orange-hover: #ffc107;
-        --ci-payroll-orange-text: #1a1205;
+        --ci-payroll-orange: var(--admin-secondary, #5B8FD9);
+        --ci-payroll-orange-hover: var(--admin-secondary-light, #7DA8E8);
+        --ci-payroll-orange-text: var(--ci-on-accent);
         --ci-payroll-input-bg: rgba(255, 255, 255, 0.09);
         --ci-payroll-muted-border: rgba(255, 255, 255, 0.14);
-        background: #121212;
+        background: var(--ci-bg);
         border-radius: 1rem;
     }
 
     .ci-payroll-wajebaty .ci-payroll-form-card.ci-card {
-        background: #1a1f26 !important;
+        background: var(--ci-card) !important;
         border-color: rgba(255, 255, 255, 0.1) !important;
-        box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+        box-shadow: 0 8px 28px var(--ci-shadow-strong);
     }
 
     /* شريط علوي أهدأ بدل التدرج التركوازي */
     .ci-payroll-wajebaty .ci-banner {
-        background: linear-gradient(135deg, #1c222c 0%, #12161c 100%) !important;
+        background: linear-gradient(135deg, var(--ci-surface-elevated) 0%, var(--ci-bg) 100%) !important;
         border: 1px solid var(--ci-line);
         color: #fff;
     }
@@ -97,7 +97,7 @@
         border-color: var(--ci-line) !important;
         border-radius: 0.65rem !important;
         padding: 0.85rem 1rem !important;
-        background: rgba(0, 0, 0, 0.2) !important;
+        background: var(--ci-surface-overlay-light) !important;
     }
 
     .ci-payroll-wajebaty .ci-form-inner fieldset.fi-fieldset > legend {

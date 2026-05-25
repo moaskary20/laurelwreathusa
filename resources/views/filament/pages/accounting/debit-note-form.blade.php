@@ -21,7 +21,7 @@
             .ci-debit-note-form-page .ci-dn-meta {
                 border-radius: 0.5rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1rem;
                 font-size: 0.9rem;
                 color: rgba(255, 255, 255, 0.88);

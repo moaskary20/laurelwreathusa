@@ -1,3 +1,5 @@
+@include('filament.partials.admin-theme-variables')
+
 <style>
     :root {
         --fil-motion-ease: cubic-bezier(0.33, 1, 0.68, 1);
@@ -46,6 +48,16 @@
 
     .fi-topbar {
         animation: fil-fade-in 0.35s ease-out both;
+    }
+
+    .fi-topbar nav {
+        background: linear-gradient(
+            90deg,
+            var(--ci-surface-elevated) 0%,
+            var(--ci-card) 55%,
+            var(--ci-bg) 100%
+        ) !important;
+        background-color: var(--ci-card) !important;
     }
 
     .fi-main-sidebar {

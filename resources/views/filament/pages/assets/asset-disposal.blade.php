@@ -17,7 +17,7 @@
             .ci-asset-disposal-page .ci-disposal-card {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1.5rem 1.75rem;
                 max-width: 32rem;
                 margin-inline: auto;

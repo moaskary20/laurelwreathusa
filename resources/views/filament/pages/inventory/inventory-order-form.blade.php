@@ -17,7 +17,7 @@
             .ci-inventory-order-form-page .ci-io-box {
                 border-radius: 0.75rem;
                 border: 1px solid var(--ci-line);
-                background: rgba(15, 18, 24, 0.65);
+                background: var(--ci-table-content-bg);
                 padding: 1rem 1.25rem;
                 margin-bottom: 1rem;
             }

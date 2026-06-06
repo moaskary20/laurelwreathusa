@@ -5,10 +5,11 @@
         --ci-teal: var(--admin-primary, #323991);
         --ci-teal-bright: var(--admin-primary-light, #4a4fad);
         --ci-orange: var(--admin-secondary, #5B8FD9);
-        --ci-muted: rgba(255, 255, 255, 0.62);
-        --ci-line: rgba(255, 255, 255, 0.12);
+        --ci-muted: rgba(0, 0, 0, 0.62);
+        --ci-line: rgba(0, 0, 0, 0.12);
         font-family: 'Tajawal', ui-sans-serif, system-ui, sans-serif;
-        background: var(--ci-bg);
+        background: var(--admin-background);
+        color: var(--admin-text);
         border-radius: 1rem;
         animation: ci-fade-up 0.55s cubic-bezier(0.33, 1, 0.68, 1) both;
     }
@@ -178,7 +179,7 @@
     .ci-wajebaty .ci-card__head h2 {
         font-size: 1rem;
         font-weight: 700;
-        color: #fff;
+        color: var(--admin-text);
     }
 
     .ci-wajebaty .ci-card__head svg {
@@ -201,7 +202,7 @@
 
     .ci-wajebaty thead th {
         background: var(--ci-teal-muted-bg);
-        color: #e8f7fa;
+        color: var(--admin-text);
         font-weight: 700;
         padding: 0.55rem 0.65rem;
         text-align: center;
@@ -211,7 +212,7 @@
     .ci-wajebaty tbody td {
         padding: 0.55rem 0.65rem;
         text-align: center;
-        color: var(--ci-muted);
+        color: var(--admin-text-muted);
         border-bottom: 1px solid var(--ci-line);
     }
 
@@ -226,7 +227,7 @@
     }
 
     .ci-wajebaty .ci-form-inner .fi-fo-field-wrp-label {
-        color: var(--ci-teal-bright) !important;
+        color: var(--admin-primary) !important;
         font-size: 0.8rem !important;
     }
 
@@ -237,25 +238,25 @@
         border-radius: 0 !important;
         box-shadow: none !important;
         background: transparent !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
+        border-bottom: 1px solid var(--admin-input-border) !important;
     }
 
     .ci-wajebaty .ci-form-inner input,
     .ci-wajebaty .ci-form-inner textarea,
     .ci-wajebaty .ci-form-inner select {
-        color: #fff !important;
+        color: var(--admin-input-text) !important;
         background: transparent !important;
     }
 
     .ci-wajebaty .ci-form-inner .choices__inner {
         background: transparent !important;
         border: none !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.22) !important;
+        border-bottom: 1px solid var(--admin-input-border) !important;
         border-radius: 0 !important;
     }
 
     .ci-wajebaty .ci-form-inner .fi-section-header {
-        color: #fff !important;
+        color: var(--admin-text) !important;
     }
 
     .ci-wajebaty .ci-form-inner .fi-section-content {
@@ -369,20 +370,20 @@
     }
 
     .ci-wajebaty .ci-table-shell [class*='fi-table-header-cell'] {
-        color: #e8f7fa !important;
+        color: var(--admin-text) !important;
         background: var(--ci-teal-muted-bg) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ta-text,
     .ci-wajebaty .ci-table-shell .fi-ta-text-item {
-        color: rgba(255, 255, 255, 0.88) !important;
+        color: var(--admin-text-muted) !important;
     }
 
     .ci-wajebaty .ci-table-shell input.fi-input-wrp,
     .ci-wajebaty .ci-table-shell .fi-input-wrp {
-        background: rgba(255, 255, 255, 0.06) !important;
-        border-color: var(--ci-line) !important;
-        color: #fff !important;
+        background: var(--admin-input-background) !important;
+        border-color: var(--admin-input-border) !important;
+        color: var(--admin-input-text) !important;
     }
 
     .ci-wajebaty .ci-table-shell .fi-ac-btn {
@@ -400,18 +401,22 @@
     }
 
     .ci-wajebaty .ci-form-inner .fi-fo-checkbox-list-option-label {
-        color: rgba(255, 255, 255, 0.88) !important;
+        color: var(--admin-text-muted) !important;
     }
 
     .ci-wajebaty .ci-form-inner .fi-section-header-heading {
-        color: #fff !important;
+        color: var(--admin-text) !important;
     }
 
     .ci-wajebaty .ci-form-inner .fi-fo-placeholder {
-        color: rgba(255, 255, 255, 0.95) !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.22);
+        color: var(--admin-text-muted) !important;
+        border-bottom: 1px solid #d1d5db;
         padding-bottom: 0.4rem;
         min-height: 2.25rem;
+    }
+
+    .ci-wajebaty [class*='-page'] h2 {
+        color: var(--admin-text) !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

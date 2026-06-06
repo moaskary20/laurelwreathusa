@@ -11,19 +11,43 @@ final class AdminTheme
 
     public const DEFAULT_SECONDARY = '#5B8FD9';
 
+    /**
+     * @var array<string, string>
+     */
+    private const DEFAULTS = [
+        'primary' => self::DEFAULT_PRIMARY,
+        'secondary' => self::DEFAULT_SECONDARY,
+        'text' => '#111827',
+        'text_muted' => '#374151',
+        'active' => self::DEFAULT_SECONDARY,
+        'background' => '#FFFFFF',
+        'sidebar_background' => '#FFFFFF',
+        'logo_header_background' => '#FFFFFF',
+        'card_background' => '#FFFFFF',
+        'topbar_background' => '#FFFFFF',
+        'input_background' => '#F3F4F6',
+        'input_border' => '#D1D5DB',
+        'input_text' => '#000000',
+        'border' => '#E5E7EB',
+        'table_header_background' => '#F3F4F6',
+        'table_row_hover_background' => '#F3F4F6',
+    ];
+
     private const STORAGE_PATH = 'app/admin-theme.json';
 
     /**
-     * @return array{primary: string, secondary: string}
+     * @return array<string, string>
      */
     public static function all(): array
     {
         $stored = self::readStored();
+        $resolved = [];
 
-        return [
-            'primary' => self::normalizeHex($stored['primary'] ?? self::DEFAULT_PRIMARY),
-            'secondary' => self::normalizeHex($stored['secondary'] ?? self::DEFAULT_SECONDARY),
-        ];
+        foreach (self::DEFAULTS as $key => $default) {
+            $resolved[$key] = self::normalizeHex($stored[$key] ?? $default, $default);
+        }
+
+        return $resolved;
     }
 
     public static function primary(): string
@@ -36,15 +60,91 @@ final class AdminTheme
         return self::all()['secondary'];
     }
 
+    public static function text(): string
+    {
+        return self::all()['text'];
+    }
+
+    public static function textMuted(): string
+    {
+        return self::all()['text_muted'];
+    }
+
+    public static function active(): string
+    {
+        return self::all()['active'];
+    }
+
+    public static function activeLight(): string
+    {
+        return self::adjustBrightness(self::active(), 18);
+    }
+
+    public static function background(): string
+    {
+        return self::all()['background'];
+    }
+
+    public static function sidebarBackground(): string
+    {
+        return self::all()['sidebar_background'];
+    }
+
+    public static function logoHeaderBackground(): string
+    {
+        return self::all()['logo_header_background'];
+    }
+
+    public static function cardBackground(): string
+    {
+        return self::all()['card_background'];
+    }
+
+    public static function topbarBackground(): string
+    {
+        return self::all()['topbar_background'];
+    }
+
+    public static function inputBackground(): string
+    {
+        return self::all()['input_background'];
+    }
+
+    public static function inputBorder(): string
+    {
+        return self::all()['input_border'];
+    }
+
+    public static function inputText(): string
+    {
+        return self::all()['input_text'];
+    }
+
+    public static function border(): string
+    {
+        return self::all()['border'];
+    }
+
+    public static function tableHeaderBackground(): string
+    {
+        return self::all()['table_header_background'];
+    }
+
+    public static function tableRowHoverBackground(): string
+    {
+        return self::all()['table_row_hover_background'];
+    }
+
     /**
-     * @param  array{primary?: string, secondary?: string}  $colors
+     * @param  array<string, string|null>  $colors
      */
     public static function save(array $colors): void
     {
-        $payload = [
-            'primary' => self::normalizeHex($colors['primary'] ?? self::DEFAULT_PRIMARY),
-            'secondary' => self::normalizeHex($colors['secondary'] ?? self::DEFAULT_SECONDARY),
-        ];
+        $payload = [];
+
+        foreach (self::DEFAULTS as $key => $default) {
+            $payload[$key] = self::normalizeHex($colors[$key] ?? $default, $default);
+        }
 
         File::ensureDirectoryExists(storage_path('app'));
 
@@ -94,17 +194,17 @@ final class AdminTheme
 
     public static function surfaceBackground(): string
     {
-        return self::adjustBrightness(self::primary(), -38);
+        return self::background();
     }
 
     public static function surfaceCard(): string
     {
-        return self::adjustBrightness(self::primary(), -24);
+        return self::cardBackground();
     }
 
     public static function surfaceElevated(): string
     {
-        return self::adjustBrightness(self::primary(), -14);
+        return self::cardBackground();
     }
 
     /**
@@ -128,12 +228,13 @@ final class AdminTheme
         return "{$r}, {$g}, {$b}";
     }
 
-    public static function normalizeHex(string $hex): string
+    public static function normalizeHex(string $hex, ?string $fallback = null): string
     {
         $hex = trim($hex);
+        $fallback ??= self::DEFAULT_PRIMARY;
 
         if ($hex === '') {
-            return self::DEFAULT_PRIMARY;
+            return self::normalizeHex($fallback, self::DEFAULT_PRIMARY);
         }
 
         if (! str_starts_with($hex, '#')) {
@@ -150,7 +251,7 @@ final class AdminTheme
             return '#'.strtoupper($matches[1]);
         }
 
-        return self::DEFAULT_PRIMARY;
+        return self::normalizeHex($fallback, self::DEFAULT_PRIMARY);
     }
 
     public static function isValidHex(string $hex): bool
@@ -179,7 +280,7 @@ final class AdminTheme
     }
 
     /**
-     * @return array{primary?: string, secondary?: string}
+     * @return array<string, string>
      */
     private static function readStored(): array
     {

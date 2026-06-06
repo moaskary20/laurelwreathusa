@@ -43,7 +43,7 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => AdminTheme::primaryFilamentPalette(),
                 'success' => AdminTheme::secondaryFilamentPalette(),
             ])
-            ->darkMode(true, isForced: true)
+            ->darkMode(false)
             ->renderHook(
                 PanelsRenderHook::STYLES_AFTER,
                 fn (): string => view('filament.partials.theme')->render(),

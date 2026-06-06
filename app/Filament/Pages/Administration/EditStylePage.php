@@ -46,8 +46,8 @@ final class EditStylePage extends Page
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('ألوان لوحة التحكم')
-                    ->description('اللون الأساسي يُستخدم في القائمة الجانبية والعناوين. اللون الثانوي يُستخدم في الأزرار والتمييز.')
+                Forms\Components\Section::make('الألوان الأساسية')
+                    ->description('اللون الأساسي للعناوين والتمييز. اللون الثانوي للأزرار والتركيز.')
                     ->schema([
                         Forms\Components\ColorPicker::make('primary')
                             ->label('اللون الأساسي')
@@ -59,20 +59,91 @@ final class EditStylePage extends Page
                             ->hex(),
                     ])
                     ->columns(2),
+                Forms\Components\Section::make('ألوان النص')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('text')
+                            ->label('لون الخط الرئيسي')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('text_muted')
+                            ->label('لون الخط الثانوي')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('input_text')
+                            ->label('لون نص حقول الإدخال')
+                            ->required()
+                            ->hex(),
+                    ])
+                    ->columns(3),
+                Forms\Components\Section::make('القائمة الجانبية')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('active')
+                            ->label('لون العنصر النشط')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('sidebar_background')
+                            ->label('خلفية القائمة الجانبية')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('logo_header_background')
+                            ->label('خلفية منطقة اللوجو')
+                            ->required()
+                            ->hex(),
+                    ])
+                    ->columns(3),
+                Forms\Components\Section::make('الخلفيات')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('background')
+                            ->label('خلفية الصفحة')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('card_background')
+                            ->label('خلفية البطاقات والأقسام')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('topbar_background')
+                            ->label('خلفية الشريط العلوي')
+                            ->required()
+                            ->hex(),
+                    ])
+                    ->columns(3),
+                Forms\Components\Section::make('حقول الإدخال')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('input_background')
+                            ->label('خلفية حقول الإدخال')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('input_border')
+                            ->label('حدود حقول الإدخال')
+                            ->required()
+                            ->hex(),
+                    ])
+                    ->columns(2),
+                Forms\Components\Section::make('الجداول والحدود')
+                    ->schema([
+                        Forms\Components\ColorPicker::make('border')
+                            ->label('لون الحدود العام')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('table_header_background')
+                            ->label('خلفية رأس الجدول')
+                            ->required()
+                            ->hex(),
+                        Forms\Components\ColorPicker::make('table_row_hover_background')
+                            ->label('خلفية صف الجدول عند التمرير')
+                            ->required()
+                            ->hex(),
+                    ])
+                    ->columns(3),
                 Forms\Components\Placeholder::make('preview')
-                    ->label('معاينة')
-                    ->content(fn (): string => 'بعد الحفظ ستُطبَّق الألوان على كل صفحات لوحة التحكم.'),
+                    ->label('ملاحظة')
+                    ->content('بعد الحفظ ستُطبَّق الألوان على كل صفحات لوحة التحكم. حدّث الصفحة إن لم تظهر التغييرات فوراً.'),
             ]);
     }
 
     public function save(): void
     {
-        $data = $this->form->getState();
-
-        AdminTheme::save([
-            'primary' => $data['primary'],
-            'secondary' => $data['secondary'],
-        ]);
+        AdminTheme::save($this->form->getState());
 
         Notification::make()
             ->success()

@@ -21,26 +21,30 @@
 
 <style>
     :root {
-        --fil-sidebar-surface: rgba(255, 255, 255, 0.04);
-        --fil-sidebar-border: rgba(255, 255, 255, 0.08);
+        --fil-sidebar-surface: rgba(0, 0, 0, 0.04);
+        --fil-sidebar-border: rgba(0, 0, 0, 0.08);
         --fil-sidebar-group-ease: cubic-bezier(0.33, 1, 0.68, 1);
     }
 
     /* ——— القائمة الجانبية (fi-main-sidebar و fi-sidebar على نفس العنصر) ——— */
     aside.fi-main-sidebar {
-        background: linear-gradient(180deg, var(--fil-sidebar-bg-top) 0%, var(--fil-sidebar-bg-bottom) 100%) !important;
-        border-inline-end: 1px solid var(--fil-sidebar-border);
+        background: var(--admin-sidebar-background) !important;
+        border-inline-end: 1px solid var(--admin-border);
     }
 
     .fi-main-sidebar .fi-sidebar-header {
-        background: #000000 !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: var(--admin-logo-header-background) !important;
+        border-bottom: 1px solid var(--admin-border) !important;
         box-shadow: none !important;
     }
 
     .fi-main-sidebar .fi-sidebar-nav {
         scrollbar-width: thin;
         scrollbar-color: color-mix(in srgb, var(--fil-sidebar-accent) 40%, transparent) transparent;
+    }
+
+    .fi-main-sidebar .fi-sidebar-item:not(.fi-active) .fi-sidebar-item-label {
+        color: var(--admin-text-muted) !important;
     }
 
     .fi-main-sidebar .fi-sidebar-nav::-webkit-scrollbar {
@@ -94,7 +98,7 @@
         font-size: 0.8125rem !important;
         font-weight: 700 !important;
         letter-spacing: 0.01em;
-        color: rgba(255, 255, 255, 0.72) !important;
+        color: rgba(0, 0, 0, 0.72) !important;
     }
 
     .fi-main-sidebar .fi-sidebar-group.fi-active .fi-sidebar-group-label {
@@ -109,7 +113,7 @@
         min-height: 1.35rem !important;
         margin-inline-start: auto;
         border-radius: 0.375rem !important;
-        background: rgba(255, 255, 255, 0.06) !important;
+        background: rgba(0, 0, 0, 0.06) !important;
         transform: rotate(0deg);
         transition:
             transform 0.32s var(--fil-sidebar-group-ease),
@@ -200,7 +204,7 @@
     }
 
     .fi-main-sidebar .fi-sidebar-item-button:hover {
-        background: rgba(255, 255, 255, 0.06) !important;
+        background: rgba(0, 0, 0, 0.06) !important;
         transform: none !important;
     }
 

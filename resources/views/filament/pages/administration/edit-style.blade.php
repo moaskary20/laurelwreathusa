@@ -8,30 +8,27 @@
         <style>
             .ci-style-editor .ci-style-preview {
                 display: grid;
-                gap: 1rem;
-                grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-                margin-top: 1rem;
+                gap: 0.75rem;
+                grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+                margin-top: 1.25rem;
             }
 
             .ci-style-editor .ci-style-swatch {
                 border-radius: 0.75rem;
-                padding: 1.25rem 1rem;
+                padding: 1rem 0.75rem;
                 text-align: center;
+                font-size: 0.78rem;
                 font-weight: 700;
-                color: #fff;
-                border: 1px solid var(--ci-line);
+                color: var(--admin-text);
+                border: 1px solid var(--admin-border);
+                min-height: 4.5rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
 
-            .ci-style-editor .ci-style-swatch--primary {
-                background: var(--admin-primary);
-            }
-
-            .ci-style-editor .ci-style-swatch--secondary {
-                background: var(--admin-secondary);
-            }
-
-            .ci-style-editor .ci-form-inner .fi-fo-field-wrp-label {
-                color: var(--ci-teal-bright) !important;
+            .ci-style-editor .ci-style-swatch--on-dark {
+                color: #ffffff;
             }
         </style>
 
@@ -42,7 +39,7 @@
                 </div>
                 <div>
                     <div class="ci-banner__title">تعديل ال style</div>
-                    <div class="ci-banner__sub">تخصيص ألوان لوحة التحكم للنظام المحاسبي</div>
+                    <div class="ci-banner__sub">تخصيص ألوان لوحة التحكم بالكامل</div>
                 </div>
             </div>
         </div>
@@ -50,15 +47,21 @@
         <div class="ci-card">
             <div class="ci-card__head">
                 <x-heroicon-o-paint-brush class="h-5 w-5" />
-                <h2>الألوان</h2>
+                <h2>ألوان لوحة التحكم</h2>
             </div>
 
             <div class="ci-form-inner">
                 {{ $this->form }}
 
                 <div class="ci-style-preview">
-                    <div class="ci-style-swatch ci-style-swatch--primary">أساسي</div>
-                    <div class="ci-style-swatch ci-style-swatch--secondary">ثانوي</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-primary); color: #fff;">أساسي</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-secondary); color: #fff;">ثانوي</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-text); color: #fff;">خط</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-active); color: #fff;">نشط</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-background);">خلفية</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-sidebar-background);">قائمة</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-logo-header-background);">لوجو</div>
+                    <div class="ci-style-swatch" style="background: var(--admin-input-background);">إدخال</div>
                 </div>
             </div>
 

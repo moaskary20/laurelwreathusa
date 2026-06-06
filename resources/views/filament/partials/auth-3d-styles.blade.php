@@ -8,7 +8,7 @@
         background: radial-gradient(
             ellipse 120% 80% at 50% 0%,
             rgba(var(--admin-secondary-rgb), 0.22) 0%,
-            var(--ci-bg) 55%
+            #141418 55%
         );
         perspective: 1400px;
     }
@@ -264,11 +264,11 @@
     .auth-3d-card {
         transform-style: preserve-3d;
         transition: transform 0.15s ease-out, box-shadow 0.25s ease;
-        background: #0a0a0c !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background: #ffffff !important;
+        border: 1px solid rgba(var(--admin-primary-rgb), 0.12) !important;
         box-shadow:
-            0 28px 56px rgba(0, 0, 0, 0.55),
-            0 0 0 1px rgba(255, 255, 255, 0.06) inset !important;
+            0 28px 56px rgba(0, 0, 0, 0.35),
+            0 0 0 1px rgba(var(--admin-primary-rgb), 0.06) inset !important;
         backdrop-filter: none;
         --tw-ring-color: transparent !important;
         animation: auth-card-enter 1s cubic-bezier(0.33, 1, 0.68, 1) both;
@@ -293,7 +293,7 @@
         position: relative;
     }
 
-    .auth-3d-layout .fi-simple-header::before {
+    .auth-3d-card .fi-simple-header::before {
         content: '';
         position: absolute;
         top: 0;
@@ -304,48 +304,74 @@
         border-radius: 1.25rem;
         background: radial-gradient(
             ellipse 95% 88% at 50% 42%,
-            rgba(0, 0, 0, 0.95) 0%,
-            rgba(0, 0, 0, 0.75) 50%,
-            rgba(0, 0, 0, 0.4) 75%,
+            rgba(255, 255, 255, 0.95) 0%,
+            rgba(255, 255, 255, 0.75) 50%,
+            rgba(255, 255, 255, 0.4) 75%,
             transparent 100%
         );
         z-index: 0;
         pointer-events: none;
     }
 
-    .auth-3d-layout .fi-simple-header .fi-logo {
+    .auth-3d-card .fi-simple-header .fi-logo {
         position: relative;
         z-index: 1;
     }
 
-    .auth-3d-layout .fi-simple-header img.fi-logo.dark\:hidden {
-        display: none !important;
+    .auth-3d-card .fi-simple-header img.fi-logo {
+        filter: drop-shadow(0 10px 28px rgba(var(--admin-primary-rgb), 0.15));
     }
 
-    .auth-3d-layout .fi-simple-header img.fi-logo {
-        filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.55));
+    .auth-3d-card .fi-simple-header-heading,
+    .auth-3d-card .fi-simple-header-subheading {
+        color: var(--admin-primary) !important;
     }
 
-    .auth-3d-layout .fi-simple-header-heading,
-    .auth-3d-layout .fi-simple-header-subheading {
-        color: rgba(255, 255, 255, 0.95) !important;
+    .auth-3d-card .fi-simple-header-subheading {
+        color: rgba(var(--admin-primary-rgb), 0.72) !important;
     }
 
-    .auth-3d-layout .fi-simple-header-subheading {
-        color: rgba(255, 255, 255, 0.7) !important;
+    .auth-3d-card .fi-fo-field-wrp-label,
+    .auth-3d-card .fi-checkbox-label {
+        color: var(--admin-primary) !important;
     }
 
-    .auth-3d-layout .fi-fo-field-wrp-label {
-        color: var(--admin-secondary-light) !important;
+    .auth-3d-card .fi-input-wrp {
+        background: #434387 !important;
+        border: 1px solid #d1d5db !important;
+        box-shadow: none !important;
+        --tw-ring-color: #d1d5db !important;
     }
 
-    .auth-3d-layout .fi-input-wrp {
-        background: rgba(255, 255, 255, 0.06) !important;
-        border-color: rgba(255, 255, 255, 0.14) !important;
+    .auth-3d-card .fi-input-wrp:focus-within {
+        background: #0c0c16 !important;
+        border-color: var(--admin-secondary) !important;
+        --tw-ring-color: rgba(var(--admin-secondary-rgb), 0.45) !important;
     }
 
-    .auth-3d-layout input {
-        color: #fff !important;
+    .auth-3d-card .fi-input-wrp-input,
+    .auth-3d-card .fi-input-wrp-prefix,
+    .auth-3d-card .fi-input-wrp-suffix {
+        background: transparent !important;
+    }
+
+    .auth-3d-card input {
+        color: #000000 !important;
+        background: transparent !important;
+    }
+
+    .auth-3d-card input::placeholder {
+        color: rgba(0, 0, 0, 0.45) !important;
+    }
+
+    .auth-3d-card .fi-input-wrp-suffix .fi-icon-btn,
+    .auth-3d-card .fi-input-wrp-prefix .fi-icon-btn {
+        color: #6b7280 !important;
+    }
+
+    .auth-3d-card .fi-input-wrp-suffix .fi-icon-btn:hover,
+    .auth-3d-card .fi-input-wrp-prefix .fi-icon-btn:hover {
+        color: #374151 !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

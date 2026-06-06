@@ -51,13 +51,8 @@
     }
 
     .fi-topbar nav {
-        background: linear-gradient(
-            90deg,
-            var(--ci-surface-elevated) 0%,
-            var(--ci-card) 55%,
-            var(--ci-bg) 100%
-        ) !important;
-        background-color: var(--ci-card) !important;
+        background: var(--admin-topbar-background) !important;
+        background-color: var(--admin-topbar-background) !important;
     }
 
     .fi-main-sidebar {

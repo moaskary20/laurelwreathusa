@@ -4,6 +4,7 @@ namespace App\Filament\Pages\Administration;
 
 use App\Models\Company;
 use App\Models\CompanyDocument;
+use App\Support\CompanyDocumentCategory;
 use Filament\Facades\Filament;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -11,6 +12,7 @@ use Filament\Pages\Page;
 use Filament\Support\Enums\ActionSize;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
+use Filament\Tables\Table;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Storage;
@@ -46,7 +48,29 @@ final class DownloadPage extends Page implements Tables\Contracts\HasTable
 
         abort_unless($tenant instanceof Company, 404);
 
-        return CompanyDocument::query()->where('company_id', $tenant->id);
+        return CompanyDocument::query()
+            ->where('company_id', $tenant->id)
+            ->orderBy('category')
+            ->orderBy('name');
+    }
+
+    public function table(Table $table): Table
+    {
+        return parent::table($table)
+            ->defaultGroup('category')
+            ->groups([
+                Tables\Grouping\Group::make('category')
+                    ->label('البند')
+                    ->titlePrefixedWithLabel(false)
+                    ->getTitleFromRecordUsing(
+                        fn (CompanyDocument $record): string => CompanyDocumentCategory::label($record->category),
+                    ),
+            ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('category')
+                    ->label('البند')
+                    ->options(CompanyDocumentCategory::labels()),
+            ]);
     }
 
     /**
@@ -55,6 +79,12 @@ final class DownloadPage extends Page implements Tables\Contracts\HasTable
     protected function getTableColumns(): array
     {
         return [
+            Tables\Columns\TextColumn::make('category')
+                ->label('البند')
+                ->formatStateUsing(fn (string $state): string => CompanyDocumentCategory::label($state))
+                ->badge()
+                ->sortable()
+                ->alignCenter(),
             Tables\Columns\TextColumn::make('name')
                 ->label('اسم المستند')
                 ->searchable()
@@ -160,6 +190,12 @@ final class DownloadPage extends Page implements Tables\Contracts\HasTable
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('category')
+                    ->label('البند')
+                    ->options(CompanyDocumentCategory::labels())
+                    ->required()
+                    ->native(false)
+                    ->columnSpanFull(),
                 Forms\Components\TextInput::make('name')
                     ->label('اسم المستند')
                     ->required()
@@ -168,7 +204,13 @@ final class DownloadPage extends Page implements Tables\Contracts\HasTable
                 Forms\Components\FileUpload::make('file_path')
                     ->label('الملف')
                     ->disk('public')
-                    ->directory(fn (): string => 'company-documents/'.Filament::getTenant()->getKey())
+                    ->directory(function (Forms\Get $get): string {
+                        $tenant = Filament::getTenant();
+                        $companyId = $tenant?->getKey() ?? 'unknown';
+                        $category = $get('category') ?: CompanyDocumentCategory::SALES;
+
+                        return 'company-documents/'.$companyId.'/'.$category;
+                    })
                     ->visibility('public')
                     ->downloadable()
                     ->openable()

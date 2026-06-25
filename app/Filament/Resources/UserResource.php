@@ -3,9 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
+use App\Models\Company;
 use App\Models\User;
-use App\Support\UserPermissionLabels;
+use App\Support\UserPermissionRegistry;
 use Filament\Facades\Filament;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -72,10 +75,15 @@ class UserResource extends Resource
                                     ->label('الشركة')
                                     ->relationship('company', 'trade_name')
                                     ->default($tenant?->getKey())
-                                    ->required()
+                                    ->required(fn (Get $get): bool => ! (bool) $get('is_system_admin'))
                                     ->disabled(fn () => $tenant !== null)
                                     ->dehydrated()
-                                    ->native(false),
+                                    ->native(false)
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, Set $set): void {
+                                        $company = $state ? Company::query()->find($state) : null;
+                                        $set('storage_quota_gb', self::storageQuotaGbFromMb($company?->storage_quota_mb));
+                                    }),
                             ]),
                         Forms\Components\Group::make()
                             ->schema([
@@ -102,6 +110,7 @@ class UserResource extends Resource
                                 Forms\Components\TextInput::make('subscription_validity')
                                     ->label('صلاحية الاشتراك')
                                     ->maxLength(255),
+                                self::companyStorageQuotaField($tenant),
                             ]),
                     ]),
                 Forms\Components\Select::make('office_id')
@@ -117,28 +126,94 @@ class UserResource extends Resource
                     ->searchable()
                     ->preload()
                     ->native(false),
-                Forms\Components\Grid::make(2)
-                    ->schema([
-                        Forms\Components\Toggle::make('is_main_user')
-                            ->label('مستخدم رئيسي')
-                            ->inline(false),
-                        Forms\Components\Toggle::make('is_super_user')
-                            ->label('مستخدم سوبر')
-                            ->inline(false),
-                    ]),
-                Forms\Components\Section::make('صلاحيات التفصيل')
-                    ->schema([
-                        Forms\Components\CheckboxList::make('permissions')
-                            ->label('')
-                            ->options(UserPermissionLabels::all())
-                            ->columns(4)
-                            ->gridDirection('row')
-                            ->bulkToggleable()
-                            ->searchable()
-                            ->columnSpanFull(),
-                    ])
-                    ->collapsible(),
+                Forms\Components\Toggle::make('is_system_admin')
+                    ->label('مدير النظام')
+                    ->helperText('يمكنه تصفح جميع الشركات داخل النظام')
+                    ->inline(false)
+                    ->live(),
+                ...self::permissionGrantSections(),
             ]);
+    }
+
+    /**
+     * @return list<Forms\Components\Section>
+     */
+    public static function permissionGrantSections(): array
+    {
+        $sections = [];
+
+        foreach (UserPermissionRegistry::grouped() as $groupKey => $block) {
+            $sections[] = Forms\Components\Section::make($block['label'])
+                ->schema([
+                    Forms\Components\CheckboxList::make('permission_grants.'.$groupKey)
+                        ->label('')
+                        ->options($block['items'])
+                        ->columns(3)
+                        ->gridDirection('row')
+                        ->bulkToggleable()
+                        ->searchable()
+                        ->columnSpanFull(),
+                ])
+                ->collapsible()
+                ->columnSpanFull();
+        }
+
+        return $sections;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    public static function persistPermissionGrants(array $data): array
+    {
+        $data['permissions'] = UserPermissionRegistry::flattenGrants($data['permission_grants'] ?? []);
+        unset($data['permission_grants']);
+
+        return $data;
+    }
+
+    public static function companyStorageQuotaField(?Company $tenant): Forms\Components\TextInput
+    {
+        return Forms\Components\TextInput::make('storage_quota_gb')
+            ->label('مساحة التخزين')
+            ->numeric()
+            ->minValue(0)
+            ->step(0.01)
+            ->suffix('جيجابايت')
+            ->default(fn (): ?float => $tenant ? self::storageQuotaGbFromMb($tenant->storage_quota_mb) : null)
+            ->helperText('الحد الأقصى لمساحة تخزين ملفات شركة العميل')
+            ->visible(fn (Get $get): bool => filled($get('company_id')))
+            ->dehydrated(false);
+    }
+
+    public static function storageQuotaGbFromMb(?int $megabytes): ?float
+    {
+        if ($megabytes === null) {
+            return null;
+        }
+
+        return round($megabytes / 1024, 2);
+    }
+
+    public static function storageQuotaMbFromGb(mixed $gigabytes): ?int
+    {
+        if ($gigabytes === null || $gigabytes === '') {
+            return null;
+        }
+
+        return (int) round((float) $gigabytes * 1024);
+    }
+
+    public static function persistCompanyStorageQuota(?int $companyId, mixed $storageQuotaGb): void
+    {
+        if (! $companyId) {
+            return;
+        }
+
+        Company::query()
+            ->whereKey($companyId)
+            ->update(['storage_quota_mb' => self::storageQuotaMbFromGb($storageQuotaGb)]);
     }
 
     public static function table(Table $table): Table
@@ -162,11 +237,15 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('الهاتف')
                     ->placeholder('—'),
-                Tables\Columns\IconColumn::make('is_main_user')
-                    ->label('رئيسي')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('is_super_user')
-                    ->label('سوبر')
+                Tables\Columns\TextColumn::make('company.storage_quota_mb')
+                    ->label('مساحة التخزين')
+                    ->formatStateUsing(fn (?int $state): string => $state === null
+                        ? '—'
+                        : self::storageQuotaGbFromMb($state).' جيجابايت')
+                    ->placeholder('—')
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('is_system_admin')
+                    ->label('مدير النظام')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('office.name_ar')
                     ->label('المكتب')

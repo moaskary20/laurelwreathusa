@@ -20,12 +20,22 @@ class CreateUser extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        $data = UserResource::persistPermissionGrants($data);
         $data['company_id'] ??= Filament::getTenant()?->getKey();
         if (! empty($data['name_ar'])) {
             $data['name'] = $data['name_ar'];
         }
 
         return $data;
+    }
+
+    protected function afterCreate(): void
+    {
+        $state = $this->form->getState();
+        UserResource::persistCompanyStorageQuota(
+            $this->record->company_id ? (int) $this->record->company_id : null,
+            $state['storage_quota_gb'] ?? null,
+        );
     }
 
     protected function getRedirectUrl(): string

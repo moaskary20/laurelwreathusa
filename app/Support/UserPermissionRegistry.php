@@ -21,6 +21,7 @@ final class UserPermissionRegistry
                 'label' => 'إدارة',
                 'items' => [
                     'dashboard' => 'الصفحة الرئيسية',
+                    'control-dashboard-page' => 'لوحة التحكم',
                     'offices' => 'المكاتب',
                     'company-information' => 'معلومات الشركة',
                     'users' => 'المستخدمين',
@@ -30,7 +31,6 @@ final class UserPermissionRegistry
                     'tax-definition' => 'تعريف الضريبة',
                     'trade-discount' => 'خصم تجاري',
                     'download' => 'تحميل',
-                    'user-permissions-page' => 'صلاحيات المستخدمين',
                     'companies' => 'قائمة الشركات',
                 ],
             ],
@@ -140,5 +140,56 @@ final class UserPermissionRegistry
     public static function allKeys(): array
     {
         return array_keys(self::flat());
+    }
+
+    /**
+     * @return array<string, list<string>>
+     */
+    public static function emptyGrants(): array
+    {
+        $grants = [];
+        foreach (array_keys(self::grouped()) as $groupKey) {
+            $grants[$groupKey] = [];
+        }
+
+        return $grants;
+    }
+
+    /**
+     * @param  list<string>|null  $permissions
+     * @return array<string, list<string>>
+     */
+    public static function splitIntoGrants(?array $permissions): array
+    {
+        $grants = self::emptyGrants();
+
+        if ($permissions === null || $permissions === []) {
+            return $grants;
+        }
+
+        $enabled = array_values(array_filter($permissions, 'is_string'));
+
+        foreach (self::grouped() as $groupKey => $block) {
+            $keys = array_keys($block['items']);
+            $grants[$groupKey] = array_values(array_intersect($enabled, $keys));
+        }
+
+        return $grants;
+    }
+
+    /**
+     * @param  array<string, mixed>  $grants
+     * @return list<string>
+     */
+    public static function flattenGrants(array $grants): array
+    {
+        $flat = [];
+        foreach ($grants as $items) {
+            if (is_array($items)) {
+                $flat = array_merge($flat, $items);
+            }
+        }
+
+        return array_values(array_unique($flat));
     }
 }

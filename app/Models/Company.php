@@ -28,6 +28,7 @@ class Company extends Model implements HasName
         'inventory_system',
         'inventory_pricing',
         'logo',
+        'storage_quota_mb',
         'legal_name_en',
         'address_en',
         'commercial_registry_issuer',
@@ -41,6 +42,7 @@ class Company extends Model implements HasName
             'fiscal_year_end' => 'date',
             'branches' => 'array',
             'partners' => 'array',
+            'storage_quota_mb' => 'integer',
         ];
     }
 

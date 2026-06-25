@@ -47,8 +47,7 @@ class TenantAccessTest extends TestCase
             'email' => 'user1@example.com',
             'password' => 'password',
             'company_id' => $company1->id,
-            'is_main_user' => false,
-            'is_super_user' => false,
+            'is_system_admin' => false,
             'permissions' => [],
         ]);
 
@@ -93,7 +92,7 @@ class TenantAccessTest extends TestCase
             'inventory_pricing' => 'average',
         ]);
 
-        $admin = User::query()->where('is_super_user', true)->firstOrFail();
+        $admin = User::query()->where('is_system_admin', true)->firstOrFail();
 
         /** @var Panel $panel */
         $panel = Mockery::mock(Panel::class);

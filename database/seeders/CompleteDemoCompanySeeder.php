@@ -48,6 +48,7 @@ use App\Services\Ledger\CustomerInvoiceLedgerSync;
 use App\Services\Ledger\PaymentVoucherLedgerSync;
 use App\Services\Ledger\PurchaseInvoiceLedgerSync;
 use App\Services\Ledger\ReceiptVoucherLedgerSync;
+use App\Support\CompanyDocumentCategory;
 use App\Support\Payroll\PayrollRunBuilder;
 use App\Support\UserPermissionRegistry;
 use Illuminate\Database\Seeder;
@@ -166,8 +167,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'phone' => '+962790000000',
                 'office_id' => $office->id,
                 'company_id' => $company->id,
-                'is_main_user' => true,
-                'is_super_user' => true,
+                'is_system_admin' => true,
                 'permissions' => UserPermissionRegistry::allKeys(),
             ],
         );
@@ -274,7 +274,11 @@ final class CompleteDemoCompanySeeder extends Seeder
     private function seedAdministrationData(Company $company): InvoiceText
     {
         CompanyDocument::query()->updateOrCreate(
-            ['company_id' => $company->id, 'name' => 'شهادة تسجيل الشركة'],
+            [
+                'company_id' => $company->id,
+                'name' => 'شهادة تسجيل الشركة',
+                'category' => CompanyDocumentCategory::SALES,
+            ],
             ['file_path' => 'demo/company-registration.pdf'],
         );
 

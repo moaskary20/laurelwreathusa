@@ -47,6 +47,6 @@ class CompanySwitcherWidget extends Widget
     /** لا تظهر إلا للمستخدمين الذين يملكون صلاحية تبديل الشركات */
     public static function canView(): bool
     {
-        return auth()->user()?->isAdminTenantSwitcher() ?? false;
+        return auth()->user()?->isSystemAdmin() ?? false;
     }
 }

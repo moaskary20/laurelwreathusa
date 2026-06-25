@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\CompanyDocumentCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
@@ -10,6 +11,7 @@ class CompanyDocument extends Model
 {
     protected $fillable = [
         'company_id',
+        'category',
         'name',
         'file_path',
     ];

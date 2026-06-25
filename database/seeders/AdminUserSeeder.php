@@ -41,8 +41,7 @@ final class AdminUserSeeder extends Seeder
                 'username' => $username,
                 'password' => Hash::make($password),
                 'company_id' => $company->getKey(),
-                'is_main_user' => true,
-                'is_super_user' => true,
+                'is_system_admin' => true,
                 'permissions' => UserPermissionRegistry::allKeys(),
             ],
         );

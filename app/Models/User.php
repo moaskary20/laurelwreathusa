@@ -33,8 +33,7 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
         'phone',
         'office_id',
         'company_id',
-        'is_main_user',
-        'is_super_user',
+        'is_system_admin',
         'subscription_validity',
         'permissions',
     ];
@@ -52,29 +51,28 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_main_user' => 'boolean',
-            'is_super_user' => 'boolean',
+            'is_system_admin' => 'boolean',
             'permissions' => 'array',
         ];
     }
 
     public function canAccessPanel(Panel $panel): bool
     {
-        if ($this->isAdminTenantSwitcher()) {
+        if ($this->isSystemAdmin()) {
             return true;
         }
 
         return (int) ($this->company_id ?? 0) > 0;
     }
 
-    public function isAdminTenantSwitcher(): bool
+    public function isSystemAdmin(): bool
     {
-        return (bool) ($this->is_super_user || $this->is_main_user);
+        return (bool) $this->is_system_admin;
     }
 
     public function getTenants(Panel $panel): array|Collection
     {
-        if ($this->isAdminTenantSwitcher()) {
+        if ($this->isSystemAdmin()) {
             return Company::query()->orderBy('trade_name')->get();
         }
 
@@ -92,7 +90,7 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
             return false;
         }
 
-        if ($this->isAdminTenantSwitcher()) {
+        if ($this->isSystemAdmin()) {
             return true;
         }
 
@@ -101,7 +99,7 @@ class User extends Authenticatable implements FilamentUser, HasDefaultTenant, Ha
 
     public function getDefaultTenant(Panel $panel): ?Model
     {
-        if (! $this->isAdminTenantSwitcher()) {
+        if (! $this->isSystemAdmin()) {
             $companyId = (int) ($this->company_id ?? 0);
             if ($companyId > 0) {
                 return Company::query()->whereKey($companyId)->first();

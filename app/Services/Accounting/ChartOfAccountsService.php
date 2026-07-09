@@ -3,6 +3,8 @@
 namespace App\Services\Accounting;
 
 use App\Models\AccountGroup;
+use App\Models\Company;
+use App\Support\Accounting\DefaultChartOfAccounts;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -191,5 +193,212 @@ final class ChartOfAccountsService
     public function activate(AccountGroup $account): void
     {
         $account->update(['is_active' => true]);
+    }
+
+    public function seedDefaultChart(int $companyId, bool $pruneNonDefault = false): void
+    {
+        $definitions = DefaultChartOfAccounts::definitions();
+        $defaultCodes = DefaultChartOfAccounts::codes();
+
+        $parentCodes = array_values(array_filter(array_column($definitions, 'parent_code')));
+        $hasChildren = array_flip($parentCodes);
+
+        DB::transaction(function () use ($companyId, $definitions, $hasChildren, $pruneNonDefault, $defaultCodes): void {
+            /** @var array<string, AccountGroup> $accountsByCode */
+            $accountsByCode = [];
+
+            foreach ($definitions as $index => $definition) {
+                $parentCode = $definition['parent_code'];
+                $parent = $parentCode !== null ? ($accountsByCode[$parentCode] ?? null) : null;
+                $parentId = $parent?->id;
+                $isPostable = ! isset($hasChildren[$definition['code']]);
+
+                $account = AccountGroup::query()->updateOrCreate(
+                    ['company_id' => $companyId, 'code' => $definition['code']],
+                    [
+                        'parent_id' => $parentId,
+                        'name_ar' => $definition['name_ar'],
+                        'account_type' => $definition['account_type'],
+                        'normal_balance' => $definition['normal_balance'],
+                        'is_postable' => $isPostable,
+                        'is_active' => true,
+                        'allow_manual_entries' => true,
+                        'sort_order' => $index + 1,
+                        'level' => $parent instanceof AccountGroup ? ((int) $parent->level + 1) : 0,
+                    ],
+                );
+
+                $account->update([
+                    'path' => $parent instanceof AccountGroup && is_string($parent->path) && $parent->path !== ''
+                        ? $parent->path.'.'.$account->id
+                        : (string) $account->id,
+                ]);
+
+                if ($parent instanceof AccountGroup && $parent->is_postable) {
+                    $parent->update(['is_postable' => false]);
+                }
+
+                $accountsByCode[$definition['code']] = $account->fresh();
+            }
+
+            if ($pruneNonDefault) {
+                $this->remapLegacyAccountReferences($companyId);
+                $this->pruneNonDefaultAccounts($companyId, $defaultCodes);
+            }
+        });
+    }
+
+    public function remapLegacyAccountReferences(int $companyId): void
+    {
+        $accountsByCode = AccountGroup::query()
+            ->where('company_id', $companyId)
+            ->get()
+            ->keyBy('code');
+
+        foreach (DefaultChartOfAccounts::legacyCodeMap() as $legacyCode => $newCode) {
+            $legacyAccount = $accountsByCode->get($legacyCode);
+            $newAccount = $accountsByCode->get($newCode);
+
+            if (! $legacyAccount instanceof AccountGroup || ! $newAccount instanceof AccountGroup) {
+                continue;
+            }
+
+            if ((int) $legacyAccount->id === (int) $newAccount->id) {
+                continue;
+            }
+
+            $this->repointAccountReferences((int) $legacyAccount->id, (int) $newAccount->id);
+        }
+    }
+
+    private function repointAccountReferences(int $fromAccountId, int $toAccountId): void
+    {
+        DB::table('journal_entry_lines')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('bank_deposits')
+            ->where('from_account_group_id', $fromAccountId)
+            ->update(['from_account_group_id' => $toAccountId]);
+
+        DB::table('bank_deposits')
+            ->where('to_account_group_id', $fromAccountId)
+            ->update(['to_account_group_id' => $toAccountId]);
+
+        DB::table('customers')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('suppliers')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('taxes')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('trade_discounts')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('service_products')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('receipt_vouchers')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('payment_vouchers')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('debit_notes')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('credit_notes')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('goods_outward_vouchers')
+            ->where('account_group_id', $fromAccountId)
+            ->update(['account_group_id' => $toAccountId]);
+
+        DB::table('finished_goods_inward_vouchers')
+            ->where('credit_account_group_id', $fromAccountId)
+            ->update(['credit_account_group_id' => $toAccountId]);
+    }
+
+    public function syncDefaultChartForAllCompanies(): void
+    {
+        Company::query()->orderBy('id')->each(function (Company $company): void {
+            $this->seedDefaultChart($company->id, pruneNonDefault: true);
+        });
+    }
+
+    /**
+     * @param list<string> $defaultCodes
+     */
+    private function pruneNonDefaultAccounts(int $companyId, array $defaultCodes): void
+    {
+        $maxPasses = 20;
+
+        for ($pass = 0; $pass < $maxPasses; $pass++) {
+            $deletedAny = false;
+
+            $candidates = AccountGroup::query()
+                ->where('company_id', $companyId)
+                ->whereNotIn('code', $defaultCodes)
+                ->orderByDesc('level')
+                ->orderByDesc('id')
+                ->get();
+
+            foreach ($candidates as $account) {
+                if ($this->isAccountInUse($account)) {
+                    continue;
+                }
+
+                $hasChildren = AccountGroup::query()
+                    ->where('company_id', $companyId)
+                    ->where('parent_id', $account->id)
+                    ->exists();
+
+                if ($hasChildren) {
+                    continue;
+                }
+
+                try {
+                    $this->deleteAccount($account);
+                    $deletedAny = true;
+                } catch (ValidationException) {
+                    // الحساب مستخدم أو له حسابات فرعية — نتركه كما هو.
+                }
+            }
+
+            if (! $deletedAny) {
+                break;
+            }
+        }
+    }
+
+    private function isAccountInUse(AccountGroup $account): bool
+    {
+        $id = $account->id;
+
+        return DB::table('journal_entry_lines')->where('account_group_id', $id)->exists()
+            || DB::table('bank_deposits')->where('from_account_group_id', $id)->exists()
+            || DB::table('bank_deposits')->where('to_account_group_id', $id)->exists()
+            || DB::table('customers')->where('account_group_id', $id)->exists()
+            || DB::table('suppliers')->where('account_group_id', $id)->exists()
+            || DB::table('taxes')->where('account_group_id', $id)->exists()
+            || DB::table('trade_discounts')->where('account_group_id', $id)->exists()
+            || DB::table('service_products')->where('account_group_id', $id)->exists()
+            || DB::table('receipt_vouchers')->where('account_group_id', $id)->exists()
+            || DB::table('payment_vouchers')->where('account_group_id', $id)->exists()
+            || DB::table('debit_notes')->where('account_group_id', $id)->exists()
+            || DB::table('credit_notes')->where('account_group_id', $id)->exists()
+            || DB::table('goods_outward_vouchers')->where('account_group_id', $id)->exists()
+            || DB::table('finished_goods_inward_vouchers')->where('credit_account_group_id', $id)->exists();
     }
 }

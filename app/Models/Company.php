@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Accounting\ChartOfAccountsService;
 use Filament\Models\Contracts\HasName;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -56,6 +57,8 @@ class Company extends Model implements HasName
                     'annual_depreciation_rate' => 0,
                 ]);
             }
+
+            app(ChartOfAccountsService::class)->seedDefaultChart($company->id);
         });
     }
 

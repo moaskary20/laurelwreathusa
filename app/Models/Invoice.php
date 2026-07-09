@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 
 class Invoice extends Model
 {
@@ -33,6 +34,7 @@ class Invoice extends Model
         'invoice_text_id',
         'user_id',
         'notes',
+        'paper_invoice_path',
     ];
 
     protected function casts(): array
@@ -86,5 +88,32 @@ class Invoice extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(InvoiceLine::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Invoice $invoice): void {
+            if ($invoice->paper_invoice_path && Storage::disk('public')->exists($invoice->paper_invoice_path)) {
+                Storage::disk('public')->delete($invoice->paper_invoice_path);
+            }
+        });
+
+        static::updating(function (Invoice $invoice): void {
+            if (! $invoice->isDirty('paper_invoice_path')) {
+                return;
+            }
+
+            $incoming = $invoice->paper_invoice_path;
+            if ($incoming === null || $incoming === '') {
+                $invoice->paper_invoice_path = $invoice->getOriginal('paper_invoice_path');
+
+                return;
+            }
+
+            $previous = $invoice->getOriginal('paper_invoice_path');
+            if ($previous && $previous !== $incoming && Storage::disk('public')->exists($previous)) {
+                Storage::disk('public')->delete($previous);
+            }
+        });
     }
 }

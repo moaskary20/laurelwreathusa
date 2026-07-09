@@ -102,6 +102,7 @@ final class CustomerInvoiceFormPage extends Page
             'bank_account_id' => $invoice->bank_account_id,
             'invoice_text_id' => $invoice->invoice_text_id,
             'notes' => $invoice->notes,
+            'paper_invoice_path' => $invoice->paper_invoice_path,
             'lines' => $invoice->lines->map(fn (InvoiceLine $line, int $index): array => [
                 'service_product_id' => $line->service_product_id,
                 'description' => $line->description,
@@ -411,6 +412,28 @@ final class CustomerInvoiceFormPage extends Page
                     ->label('النص')
                     ->rows(3)
                     ->columnSpanFull(),
+                Forms\Components\Section::make('الفاتورة الورقية')
+                    ->schema([
+                        Forms\Components\FileUpload::make('paper_invoice_path')
+                            ->label('رفع الفاتورة (صورة أو PDF)')
+                            ->disk('public')
+                            ->directory(fn (): string => 'invoices/'.$tenant->id.'/paper')
+                            ->acceptedFileTypes([
+                                'application/pdf',
+                                'image/jpeg',
+                                'image/png',
+                                'image/webp',
+                                'image/gif',
+                            ])
+                            ->downloadable()
+                            ->openable()
+                            ->previewable()
+                            ->imagePreviewHeight('220')
+                            ->maxSize(10240)
+                            ->helperText('ارفع صورة للفاتورة الورقية أو ملف PDF (حتى 10 ميجابايت)')
+                            ->columnSpanFull(),
+                    ])
+                    ->collapsible(),
             ])
             ->columns(1)
             ->statePath('data');
@@ -506,6 +529,7 @@ final class CustomerInvoiceFormPage extends Page
                 'bank_account_id' => $data['bank_account_id'] ?? null,
                 'invoice_text_id' => $data['invoice_text_id'] ?? null,
                 'notes' => $data['notes'] ?? null,
+                'paper_invoice_path' => $data['paper_invoice_path'] ?? null,
             ];
 
             if (! empty($data['id'])) {

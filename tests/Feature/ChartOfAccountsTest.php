@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\JournalEntry;
 use App\Models\JournalEntryLine;
 use App\Services\Accounting\ChartOfAccountsService;
+use App\Support\Accounting\DefaultChartOfAccounts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
@@ -21,25 +22,15 @@ class ChartOfAccountsTest extends TestCase
 
         $company = Company::query()->firstOrFail();
 
-        $header = AccountGroup::query()->create([
-            'company_id' => $company->id,
-            'parent_id' => null,
-            'code' => '1000000',
-            'name_ar' => 'الموجودات',
-            'account_type' => 'asset',
-            'normal_balance' => 'debit',
-            'is_postable' => false,
-            'is_active' => true,
-            'allow_manual_entries' => true,
-            'sort_order' => 1,
-            'level' => 0,
-            'path' => null,
-        ]);
+        $header = AccountGroup::query()
+            ->where('company_id', $company->id)
+            ->where('code', '1000000')
+            ->firstOrFail();
 
         $inactive = AccountGroup::query()->create([
             'company_id' => $company->id,
             'parent_id' => $header->id,
-            'code' => '1100000',
+            'code' => '1199999',
             'name_ar' => 'حساب غير مفعل',
             'account_type' => 'asset',
             'normal_balance' => 'debit',
@@ -73,7 +64,7 @@ class ChartOfAccountsTest extends TestCase
         $account = AccountGroup::query()->create([
             'company_id' => $company->id,
             'parent_id' => null,
-            'code' => '2000000',
+            'code' => '9999999',
             'name_ar' => 'حساب طرفي',
             'account_type' => 'asset',
             'normal_balance' => 'debit',
@@ -110,5 +101,56 @@ class ChartOfAccountsTest extends TestCase
 
         $this->expectException(ValidationException::class);
         app(ChartOfAccountsService::class)->deleteAccount($account);
+    }
+
+    public function test_new_company_gets_default_chart_of_accounts(): void
+    {
+        $company = Company::query()->create([
+            'legal_name' => 'شركة اختبار الشجرة',
+            'trade_name' => 'اختبار الشجرة',
+            'legal_type' => 'limited_liability',
+            'trade_category' => 'commercial',
+            'national_number' => 'TEST-COA-'.uniqid(),
+            'registration_number' => 'REG-TEST',
+            'sales_invoice_start' => 1,
+        ]);
+
+        $codes = AccountGroup::query()
+            ->where('company_id', $company->id)
+            ->pluck('code')
+            ->all();
+
+        $this->assertEqualsCanonicalizing(DefaultChartOfAccounts::codes(), $codes);
+
+        $cash = AccountGroup::query()
+            ->where('company_id', $company->id)
+            ->where('code', '1111000')
+            ->first();
+
+        $this->assertNotNull($cash);
+        $this->assertTrue($cash->is_postable);
+        $this->assertSame('نقد في الصندوق', $cash->name_ar);
+    }
+
+    public function test_seed_default_chart_is_idempotent(): void
+    {
+        $company = Company::query()->create([
+            'legal_name' => 'شركة تكرار الشجرة',
+            'trade_name' => 'تكرار الشجرة',
+            'legal_type' => 'limited_liability',
+            'trade_category' => 'commercial',
+            'national_number' => 'TEST-COA-IDEM-'.uniqid(),
+            'registration_number' => 'REG-IDEM',
+            'sales_invoice_start' => 1,
+        ]);
+
+        $initialCount = AccountGroup::query()->where('company_id', $company->id)->count();
+
+        app(ChartOfAccountsService::class)->seedDefaultChart($company->id);
+
+        $this->assertSame(
+            $initialCount,
+            AccountGroup::query()->where('company_id', $company->id)->count(),
+        );
     }
 }

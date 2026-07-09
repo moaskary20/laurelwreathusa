@@ -44,6 +44,7 @@ use App\Models\Tax;
 use App\Models\TradeDiscount;
 use App\Models\User;
 use App\Models\Warehouse;
+use App\Services\Accounting\ChartOfAccountsService;
 use App\Services\Ledger\CustomerInvoiceLedgerSync;
 use App\Services\Ledger\PaymentVoucherLedgerSync;
 use App\Services\Ledger\PurchaseInvoiceLedgerSync;
@@ -175,69 +176,13 @@ final class CompleteDemoCompanySeeder extends Seeder
 
     private function seedChartOfAccounts(Company $company): void
     {
-        $this->accounts = [];
+        app(ChartOfAccountsService::class)->seedDefaultChart($company->id, pruneNonDefault: true);
 
-        $this->account($company, '1000', 'الموجودات', 'asset', 'debit', null, false);
-        $this->account($company, '1100', 'النقد والبنوك', 'asset', 'debit', '1000', false);
-        $this->account($company, '1110', 'الصندوق الرئيسي', 'asset', 'debit', '1100');
-        $this->account($company, '1120', 'البنك الرئيسي', 'asset', 'debit', '1100');
-        $this->account($company, '1200', 'الذمم المدينة', 'asset', 'debit', '1000');
-        $this->account($company, '1300', 'المخزون', 'asset', 'debit', '1000');
-        $this->account($company, '1400', 'الأصول الثابتة', 'asset', 'debit', '1000');
-
-        $this->account($company, '2000', 'المطلوبات', 'liability', 'credit', null, false);
-        $this->account($company, '2100', 'الذمم الدائنة', 'liability', 'credit', '2000');
-        $this->account($company, '2200', 'ضريبة مبيعات مستحقة', 'liability', 'credit', '2000');
-        $this->account($company, '2300', 'مستحقات الضمان الاجتماعي', 'liability', 'credit', '2000');
-
-        $this->account($company, '3000', 'حقوق الملكية', 'equity', 'credit', null, false);
-        $this->account($company, '3100', 'رأس المال', 'equity', 'credit', '3000');
-
-        $this->account($company, '4000', 'الإيرادات', 'revenue', 'credit', null, false);
-        $this->account($company, '4100', 'إيرادات الخدمات', 'revenue', 'credit', '4000');
-        $this->account($company, '4200', 'إيرادات المنتجات', 'revenue', 'credit', '4000');
-
-        $this->account($company, '5000', 'المصروفات والتكاليف', 'expense', 'debit', null, false);
-        $this->account($company, '5100', 'تكلفة البضاعة المباعة', 'expense', 'debit', '5000');
-        $this->account($company, '5200', 'مصروفات رواتب', 'expense', 'debit', '5000');
-        $this->account($company, '5300', 'خصومات تجارية', 'expense', 'debit', '5000');
-    }
-
-    private function account(
-        Company $company,
-        string $code,
-        string $name,
-        string $type,
-        string $normalBalance,
-        ?string $parentCode = null,
-        bool $isPostable = true,
-    ): AccountGroup {
-        $parent = $parentCode !== null ? ($this->accounts[$parentCode] ?? null) : null;
-
-        $account = AccountGroup::query()->updateOrCreate(
-            ['company_id' => $company->id, 'code' => $code],
-            [
-                'parent_id' => $parent?->id,
-                'name_ar' => $name,
-                'account_type' => $type,
-                'normal_balance' => $normalBalance,
-                'is_postable' => $isPostable,
-                'is_active' => true,
-                'allow_manual_entries' => true,
-                'sort_order' => (int) $code,
-                'level' => $parent ? ((int) $parent->level + 1) : 0,
-            ],
-        );
-
-        $account->update([
-            'path' => $parent && $parent->path
-                ? $parent->path.'.'.$account->id
-                : (string) $account->id,
-        ]);
-
-        $this->accounts[$code] = $account->fresh();
-
-        return $this->accounts[$code];
+        $this->accounts = AccountGroup::query()
+            ->where('company_id', $company->id)
+            ->get()
+            ->keyBy('code')
+            ->all();
     }
 
     private function seedCurrencies(Company $company): Currency
@@ -316,12 +261,12 @@ final class CompleteDemoCompanySeeder extends Seeder
     {
         $tax = Tax::query()->updateOrCreate(
             ['company_id' => $company->id, 'name' => 'ضريبة مبيعات 16%'],
-            ['rate' => 16, 'account_group_id' => $this->accounts['2200']->id],
+            ['rate' => 16, 'account_group_id' => $this->accounts['2170000']->id],
         );
 
         TradeDiscount::query()->updateOrCreate(
             ['company_id' => $company->id, 'discount_type' => 'خصم تجاري 5%'],
-            ['rate' => 5, 'account_group_id' => $this->accounts['5300']->id],
+            ['rate' => 5, 'account_group_id' => $this->accounts['8000000']->id],
         );
 
         return $tax;
@@ -361,7 +306,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                     'sale_price' => 250,
                     'stock_quantity' => 0,
                     'unit_cost' => 0,
-                    'account_group_id' => $this->accounts['4100']->id,
+                    'account_group_id' => $this->accounts['4000000']->id,
                     'cost_center_id' => $costCenters['sales']->id,
                     'tax_id' => $tax->id,
                 ],
@@ -375,7 +320,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                     'sale_price' => 75,
                     'stock_quantity' => 100,
                     'unit_cost' => 45,
-                    'account_group_id' => $this->accounts['1300']->id,
+                    'account_group_id' => $this->accounts['1133000']->id,
                     'cost_center_id' => $costCenters['warehouse']->id,
                     'tax_id' => $tax->id,
                 ],
@@ -399,7 +344,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'credit_limit' => 10000,
                 'opening_balance' => 500,
                 'balance' => 500,
-                'account_group_id' => $this->accounts['1200']->id,
+                'account_group_id' => $this->accounts['1120000']->id,
             ],
         );
     }
@@ -420,7 +365,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'credit_limit' => 8000,
                 'opening_balance' => 300,
                 'balance' => 300,
-                'account_group_id' => $this->accounts['2100']->id,
+                'account_group_id' => $this->accounts['2110000']->id,
             ],
         );
     }
@@ -701,7 +646,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'voucher_date' => Carbon::now()->subDays(9),
                 'customer_id' => $customer->id,
                 'sales_order_id' => $salesOrder->id,
-                'account_group_id' => $this->accounts['1300']->id,
+                'account_group_id' => $this->accounts['1133000']->id,
                 'user_id' => $user->id,
             ],
         );
@@ -724,7 +669,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'customer_id' => $customer->id,
                 'payment_method' => 'bank',
                 'payment_kind' => 'invoice',
-                'account_group_id' => $this->accounts['1120']->id,
+                'account_group_id' => $this->accounts['1112000']->id,
                 'total_amount' => 400,
                 'description' => 'قبض جزئي من العميل التجريبي.',
             ],
@@ -744,7 +689,7 @@ final class CompleteDemoCompanySeeder extends Seeder
                 'supplier_id' => $supplier->id,
                 'payment_method' => 'bank',
                 'payment_kind' => 'invoice',
-                'account_group_id' => $this->accounts['1120']->id,
+                'account_group_id' => $this->accounts['1112000']->id,
                 'total_amount' => 300,
                 'description' => 'دفع جزئي للمورد التجريبي.',
             ],
@@ -770,7 +715,7 @@ final class CompleteDemoCompanySeeder extends Seeder
         JournalEntryLine::query()->where('journal_entry_id', $entry->id)->delete();
         JournalEntryLine::query()->create([
             'journal_entry_id' => $entry->id,
-            'account_group_id' => $this->accounts['1110']->id,
+            'account_group_id' => $this->accounts['1111000']->id,
             'description' => 'رصيد افتتاحي للصندوق',
             'debit' => 5000,
             'credit' => 0,
@@ -778,7 +723,7 @@ final class CompleteDemoCompanySeeder extends Seeder
         ]);
         JournalEntryLine::query()->create([
             'journal_entry_id' => $entry->id,
-            'account_group_id' => $this->accounts['3100']->id,
+            'account_group_id' => $this->accounts['3110000']->id,
             'description' => 'رأس مال افتتاحي',
             'debit' => 0,
             'credit' => 5000,
@@ -790,8 +735,8 @@ final class CompleteDemoCompanySeeder extends Seeder
             [
                 'user_id' => $user->id,
                 'deposit_date' => Carbon::now()->subDays(2)->toDateString(),
-                'from_account_group_id' => $this->accounts['1110']->id,
-                'to_account_group_id' => $this->accounts['1120']->id,
+                'from_account_group_id' => $this->accounts['1111000']->id,
+                'to_account_group_id' => $this->accounts['1112000']->id,
                 'currency_id' => $currency->id,
                 'amount' => 1000,
                 'description' => 'إيداع من الصندوق إلى البنك.',

@@ -69,8 +69,8 @@ final class ChartOfAccountsPage extends Page implements Tables\Contracts\HasTabl
 
         return AccountGroup::query()
             ->where('company_id', $tenant->id)
-            ->orderBy('code')
             ->orderBy('sort_order')
+            ->orderBy('code')
             ->orderBy('id');
     }
 

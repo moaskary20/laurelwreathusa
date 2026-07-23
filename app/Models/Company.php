@@ -62,6 +62,11 @@ class Company extends Model implements HasName
         });
     }
 
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
+    }
+
     public function offices(): HasMany
     {
         return $this->hasMany(Office::class);

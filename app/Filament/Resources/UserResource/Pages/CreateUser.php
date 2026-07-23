@@ -40,6 +40,13 @@ class CreateUser extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
+        $companyId = $this->record->company_id ? (int) $this->record->company_id : null;
+        $tenantId = Filament::getTenant()?->getKey();
+
+        if ($companyId && (int) $tenantId !== $companyId) {
+            return UserResource::getUrl('index', ['tenant' => $companyId]);
+        }
+
         return $this->getResource()::getUrl('index');
     }
 }

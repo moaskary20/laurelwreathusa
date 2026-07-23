@@ -20,6 +20,12 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
+    /**
+     * Keep company_id from the form (system admin may assign any company).
+     * Tenant scoping is handled manually in getEloquentQuery().
+     */
+    protected static bool $isScopedToTenant = false;
+
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationGroup = 'إدارة';
@@ -33,6 +39,11 @@ class UserResource extends Resource
     protected static ?string $recordTitleAttribute = 'name_ar';
 
     protected static ?int $navigationSort = 3;
+
+    public static function canSelectCompany(): bool
+    {
+        return auth()->user()?->isSystemAdmin() ?? false;
+    }
 
     public static function getEloquentQuery(): Builder
     {
@@ -76,11 +87,14 @@ class UserResource extends Resource
                                     ->relationship('company', 'trade_name')
                                     ->default($tenant?->getKey())
                                     ->required(fn (Get $get): bool => ! (bool) $get('is_system_admin'))
-                                    ->disabled(fn () => $tenant !== null)
+                                    ->disabled(fn (): bool => ! self::canSelectCompany())
                                     ->dehydrated()
+                                    ->searchable()
+                                    ->preload()
                                     ->native(false)
                                     ->live()
                                     ->afterStateUpdated(function ($state, Set $set): void {
+                                        $set('office_id', null);
                                         $company = $state ? Company::query()->find($state) : null;
                                         $set('storage_quota_gb', self::storageQuotaGbFromMb($company?->storage_quota_mb));
                                     }),
@@ -118,10 +132,12 @@ class UserResource extends Resource
                     ->relationship(
                         name: 'office',
                         titleAttribute: 'name_ar',
-                        modifyQueryUsing: fn (Builder $query) => $query->when(
-                            $tenant,
-                            fn (Builder $q) => $q->where('company_id', $tenant->getKey()),
-                        ),
+                        modifyQueryUsing: function (Builder $query, Get $get) use ($tenant): void {
+                            $companyId = $get('company_id') ?: $tenant?->getKey();
+                            if ($companyId) {
+                                $query->where('company_id', $companyId);
+                            }
+                        },
                     )
                     ->searchable()
                     ->preload()
